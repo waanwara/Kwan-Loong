@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kwan-Loong | เข้าสู่ระบบ</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Lao:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/i18next@23.16.8/dist/umd/i18next.min.js" defer></script>
+    <script src="js/i18n.js" defer></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--kl-font);
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('login.avif') no-repeat center center / cover;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.25);
+            z-index: 1;
+        }
+
+        .lang-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(15, 35, 35, 0.55);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1.5px solid rgba(110, 231, 183, 0.5);
+            border-radius: var(--kl-radius);
+            padding: 6px 12px;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(0, 255, 170, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .lang-switcher:hover {
+            border-color: #34d399;
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.4);
+        }
+
+        .login-brand {
+            position: absolute;
+            top: 28px;
+            left: 28px;
+            z-index: 10;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .login-brand .kl-brand-logo {
+            font-size: 24px;
+        }
+
+        .login-brand .kl-brand-subtitle {
+            color: #34d399;
+            font-size: 14px;
+        }
+
+        .lang-icon {
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .login-lang-select {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .login-lang-select option {
+            background: #0f2323;
+            color: #ffffff;
+        }
+
+        .login-card {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 380px;
+            padding: 35px 30px;
+            background: rgba(15, 35, 35, 0.45);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1.5px solid rgba(110, 231, 183, 0.6);
+            border-radius: var(--kl-radius);
+            box-shadow: 0 0 30px rgba(0, 255, 170, 0.35),
+                inset 0 0 15px rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
+        .user-icon {
+            display: block;
+            width: 148px;
+            max-width: 54%;
+            margin: 0 auto 18px;
+        }
+
+        .login-card h2 {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 500;
+            margin-bottom: 25px;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: #a7f3d0;
+            margin-bottom: 6px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper .icon {
+            position: absolute;
+            left: 12px;
+            color: #6b7280;
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 10px 14px 10px 36px;
+            background: rgba(240, 248, 245, 0.95);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #111827;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .input-wrapper input:focus {
+            background: #ffffff;
+            border-color: #34d399;
+            box-shadow: 0 0 10px rgba(52, 211, 153, 0.5);
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 11px;
+            margin-top: 10px;
+            background: linear-gradient(90deg, #16c01f, #0d9488);
+            border: none;
+            border-radius: 25px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(13, 148, 136, 0.4);
+        }
+
+        button[type="submit"]:hover {
+            background: linear-gradient(90deg, #078f66, #18c512);
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.6);
+            transform: translateY(-1px);
+        }
+
+        .message {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 13px;
+            color: #a7f3d0;
+            min-height: 20px;
+            word-break: break-word;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        :root {
+            --kl-font: 'Inter', 'Noto Sans Thai', 'Noto Sans Lao', sans-serif;
+            --kl-radius: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <a class="login-brand" href="index.html" aria-label="Kwan-Loong">
+        <span class="kl-brand-logo">Kwan-Loong</span>
+        <span class="kl-brand-subtitle">Analytics</span>
+    </a>
+
+    <div class="lang-switcher">
+        <span class="lang-icon">🌐︎</span>
+        <select class="login-lang-select language-select" id="langSelect" data-language-select>
+            <option value="th">ไทย (TH)</option>
+            <option value="en">English (EN)</option>
+            <option value="lo">ลาว (LO)</option>
+        </select>
+    </div>
+
+    <div class="login-card">
+        <img src="user.png" class="user-icon" alt="">
+        <h2 id="titleText" data-i18n="login.title">Sign In</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email" id="emailLabel" data-i18n="login.emailLabel">Email</label>
+                <div class="input-wrapper">
+                    <span class="icon">✉</span>
+                    <input type="email" id="email" required placeholder="user@example.com">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password" id="passwordLabel" data-i18n="login.passwordLabel">Password</label>
+                <div class="input-wrapper">
+                    <span class="icon">🔒︎</span>
+                    <input type="password" id="password" required placeholder="*******">
+                </div>
+            </div>
+            <button type="submit">
+                <span id="btnText" data-i18n="login.button">Sign In</span>
+                <span>→</span>
+            </button>
+        </form>
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        const tr = (key) => window.KwanLongI18n?.t(key) || key;
+
+        document.getElementById('langSelect').addEventListener('change', () => {
+            document.getElementById('message').textContent = '';
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+
+            messageDiv.textContent = tr('login.checking');
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    messageDiv.textContent = tr('login.success');
+                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+
+                } else {
+                    messageDiv.textContent = data.message || 'Error';
+                }
+            } catch (error) {
+                messageDiv.textContent = tr('login.connError');
+            }
+        });
+    </script>
+</body>
+
+</html>

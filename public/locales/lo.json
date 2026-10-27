@@ -1,0 +1,93 @@
+{
+    "commandHub": "ສູນບັນຊາການ",
+    "navStrategic": "ຍຸດທະສາດ",
+    "navCommand": "ບັນຊາການ",
+    "navDispatch": "ປະຕິບັດການ",
+    "sendCoords": "ສົ່ງພິກັດວິທະຍຸ",
+    "deployUnits": "ສົ່ງກຳລັງ",
+
+    "tacticalHub": "ສູນປະຕິບັດການພາກສະໜາມ",
+    "tacticalSubtitle": "ແຜນທີ່ສະຖານະການພ້ອມຄວາມຮ້ອນ ລົມ ແລະແນວກັນໄຟ",
+    "telemetry": "ຂໍ້ມູນສະຖານະການ",
+    "windVector": "ລົມ",
+    "spreadSpeed": "ຄວາມໄວໄຟລາມ",
+    "terrainSlope": "ຄວາມຊັນ",
+    "boundaryLayer": "ຂອບເຂດປົກຄອງ",
+
+    "heatLayers": "ຊັ້ນຄວາມຮ້ອນ ແລະ ລົມ",
+    "heatLow": "ຕ່ຳ",
+    "heatMed": "ກາງ",
+    "heatHigh": "ສູງ",
+    "heatExtreme": "ຮຸນແຮງ",
+
+    "modelInputs": "ຂໍ້ມູນເຂົ້າ Rothermel",
+    "fuelModel": "ປະເພດເຊື້ອໄຟ",
+    "wind": "ລົມ",
+    "direction": "ທິດ",
+    "slope": "ຊັນ",
+    "moisture": "ຊຸ່ມ",
+    "estimateSpread": "ຄຳນວນການລາມ",
+
+    "firebreakTitle": "ຕັ້ງແນວກັນໄຟ",
+    "saveFirebreak": "ບັນທຶກແນວກັນໄຟ",
+
+    "spreadTimeline": "ຄາດຄະເນເວລາໄຟລາມ",
+    "spreadTimelineSub": "ຈຳລອງການລາມຂອງໄຟ",
+
+    "aar_sector4_summary": "ສະຫຼຸບພາລະກິດຄວບຄຸມເຫດ Sector 4 (Active Fire Incident #2026-03)",
+    "aar_sector7_summary": "ສະຫຼຸບພາລະກິດຄວບຄຸມເຫດ Sector 7 (Active Fire Incident #2026-02)",
+
+    "aar_avg_response": "ເວລາຕອບສະໜອງສະເລ່ຍ",
+    "aar_saved_area": "ພື້ນທີ່ທີ່ຮັກສາໄວ້",
+    "aar_resources": "ຊັບພະຍາກອນທີ່ໃຊ້",
+    "aar_mission_status": "ສະຖານະພາລະກິດ",
+
+    "aar_minutes": "ນາທີ",
+    "aar_rai": "ໄຮ່",
+
+    "aar_sector4_resources": "2 ທີມ / 1 UAV",
+    "aar_sector7_resources": "3 ທີມ / 1 ເຮລິຄອບເຕີ",
+
+    "aar_status_contained": "CONTAINED",
+    "aar_status_successful": "SUCCESSFUL",
+
+    "lessons_learned_title": "ບົດຮຽນທີ່ໄດ້ຮັບ:",
+
+    "sector4_lesson_1": "ການສົ່ງ UAV ສຳຫຼວດແນວໄຟກ່ອນສົ່ງທີມພາກພື້ນດິນຊ່ວຍຫຼຸດຄວາມສ່ຽງໃນການເຂົ້າພື້ນທີ່",
+    "sector4_lesson_2": "ຄວນເພີ່ມການຕິດຕາມທິດທາງລົມບໍລິເວນພູເຂົາເພື່ອປັບຕຳແໜ່ງແນວກັນໄຟໃຫ້ເໝາະສົມ",
+
+    "sector7_lesson_1": "ການໃຊ້ຂໍ້ມູນ Hotspot ຮ່ວມກັບຂໍ້ມູນສະພາບອາກາດຊ່ວຍໃຫ້ກຳນົດພື້ນທີ່ເຝົ້າລະວັງໄດ້ແມ່ນຍຳຂຶ້ນ",
+    "sector7_lesson_2": "ຄວນກຽມຈຸດເຕີມນ້ຳສຳຮອງລ່ວງໜ້າໃນພື້ນທີ່ທີ່ມີໂອກາດເກີດໄຟຊ້ຳສູງ",
+
+    "statuses": {
+        "waitingHeat": "ລໍຖ້າຂໍ້ມູນ FIRMS ຫຼືຜົນຈາກໂມເດວ",
+        "waitingBackend": "ລໍຖ້າ backend",
+        "noFirebreak": "ຍັງບໍ່ມີແນວກັນໄຟ",
+        "firebreakSaving": "ກຳລັງບັນທຶກແນວກັນໄຟ...",
+        "boundaryLoading": "ກຳລັງໂຫຼດ",
+        "boundaryUnavailable": "ບໍ່ພ້ອມໃຊ້ງານ",
+        "boundaryReady": "ODM ລະດັບແຂວງ",
+        "firebreakSaved": "{{count}} ແນວກັນໄຟທີ່ບັນທຶກ",
+        "modelHeatLayer": "ຊັ້ນຄວາມຮ້ອນຈາກໂມເດວ | {{count}} cells",
+        "firmsHeatLayer": "{{source}} | {{count}} ຈຸດຄວາມຮ້ອນ"
+    },
+
+    "alerts": {
+        "dispatchOk": "ສົ່ງຄຳສັ່ງປະຕິບັດການສຳເລັດ",
+        "radioOk": "ສົ່ງພິກັດເປົ້າໝາຍໄປຫາວິທະຍຸສຳເລັດ"
+    },
+
+    "units": {
+        "hourShort": "ຊມ."
+    },
+
+    "login": {
+        "title": "ເຂົ້າສູ່ລະບົບ",
+        "emailLabel": "ອີເມວ",
+        "passwordLabel": "ລະຫັດຜ່ານ",
+        "button": "ເຂົ້າສູ່ລະບົບ",
+        "checking": "ກຳລັງກວດສອບ...",
+        "success": "ເຂົ້າສູ່ລະບົບສຳເລັດ ກຳລັງໄປໜ້າປະຕິບັດການ...",
+        "connError": "ບໍ່ສາມາດເຊື່ອມຕໍ່ server ໄດ້"
+    }
+}

@@ -1,0 +1,45 @@
+{
+    "ignition": {
+        "x_m": 523450.0,
+        "y_m": 2198450.0
+    },
+    "weather": {
+        "wind_speed_m_s": 5.0,
+        "wind_direction_deg": 270.0,
+        "temperature_c": 32.5,
+        "relative_humidity": 0.65,
+        "rainfall_mm_day": 0.0
+    },
+    "terrain": {
+        "elevation_m": 842.0,
+        "slope_deg": 27.0,
+        "aspect_deg": 135.0
+    },
+    "fuel": {
+        "fuel_model": "DEMO_FOREST",
+        "fuel_load_kg_m2": 0.6,
+        "fuel_bed_depth_m": 0.3,
+        "fuel_moisture_fraction": 0.08,
+        "heat_content_kj_kg": 18000.0
+    },
+    "land_cover": {
+        "class": "trees",
+        "tree_cover_fraction": 0.8
+    },
+    "grid": {
+        "cell_size_m": 30.0,
+        "max_cells": 101
+    },
+    "simulation": {
+        "duration_minutes": 120,
+        "output_intervals_minutes": [
+            30,
+            60,
+            120
+        ]
+    },
+    "metadata": {
+        "model_input_version": "0.1",
+        "source": "backend"
+    }
+}

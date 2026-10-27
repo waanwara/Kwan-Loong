@@ -1,0 +1,29 @@
+{
+  "name": "kwan-loong",
+  "version": "0.2.0",
+  "description": "Wildfire decision-support MVP for Laos",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "test": "node scripts/test-integration.js",
+    "test:python": "node scripts/test-python.js",
+    "check": "npm test && npm run test:python",
+    "dev": "node --watch server.js",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "wildfire",
+    "gis",
+    "laos",
+    "rothermel"
+  ],
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^13.0.3",
+    "express": "^5.2.1"
+  }
+}

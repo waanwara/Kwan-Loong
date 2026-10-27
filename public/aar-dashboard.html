@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kwan-Loong AAR Analytics Dashboard (Lao PDR)</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <!-- Google Fonts for Thai & Lao -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+Lao:wght@400;600;700&family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            background-color: #070A12;
+            font-family: 'Noto Sans Thai', 'Noto Sans Lao', 'Inter', sans-serif;
+            color: #E2E8F0;
+        }
+
+        .top-nav,
+        .top-nav button,
+        .top-nav select,
+        .top-nav span,
+        .top-nav h1 {
+            font-family: 'Noto Sans Thai', 'Noto Sans Lao', 'Inter', sans-serif !important;
+            letter-spacing: 0 !important;
+        }
+
+        .metric-grid,
+        .metric-grid * {
+            font-family: 'Noto Sans Thai', 'Noto Sans Lao', 'Inter', sans-serif !important;
+            letter-spacing: 0 !important;
+        }
+
+        .metric-card {
+            min-height: 104px;
+        }
+
+        .metric-label {
+            min-height: 2.1em;
+            font-size: 10px;
+            line-height: 1.35;
+            color: #bfdbfe;
+        }
+
+        .metric-value {
+            line-height: 1.05;
+            overflow-wrap: anywhere;
+        }
+
+        .incident-status-row {
+            min-height: 44px;
+            align-items: flex-start;
+        }
+
+        .panel-copy,
+        .panel-copy * {
+            font-family: 'Noto Sans Thai', 'Noto Sans Lao', 'Inter', sans-serif !important;
+            letter-spacing: 0 !important;
+        }
+
+        .glass-panel {
+            background: rgba(5, 30, 15, 0.5) !important;
+            backdrop-filter: blur(7px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(52, 211, 153, 0.3) !important;
+            box-shadow: 0 0 20px rgba(10, 106, 71, 0.2);
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+            border-radius: 0.5rem;
+            background: #060e0a;
+        }
+
+        .leaflet-container {
+            background: #060e0a !important;
+        }
+
+        .leaflet-control-scale-line {
+            background: transparent !important;
+            box-shadow: none !important;
+            font-family: 'Noto Sans Thai', 'Noto Sans Lao', sans-serif !important;
+            font-size: 11px !important;
+            font-weight: 500 !important;
+            color: #e2e8f0 !important;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            padding: 0 4px !important;
+        }
+
+        .leaflet-control-scale-line:first-child {
+            border: 1.5px solid #e2e8f0 !important;
+            border-top: none !important;
+        }
+
+        .leaflet-control-scale-line:last-child {
+            border: 1.5px solid #e2e8f0 !important;
+            border-bottom: none !important;
+            margin-top: -1px !important;
+        }
+
+        .leaflet-control-zoom {
+            border: none !important;
+        }
+
+        .leaflet-control-zoom a {
+            background: rgba(15, 23, 42, 0.9) !important;
+            color: white !important;
+            border: 1px solid rgba(148, 163, 184, 0.2) !important;
+        }
+
+        .leaflet-control-zoom a:hover {
+            background: rgba(30, 41, 59, 0.95) !important;
+        }
+
+        .leaflet-control-attribution {
+            background: rgba(15, 23, 42, 0.75) !important;
+            color: #94a3b8 !important;
+        }
+
+        .leaflet-control-attribution a {
+            color: #cbd5e1 !important;
+        }
+
+         ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+
+         ::-webkit-scrollbar-track {
+            background: #070A12;
+        }
+
+         ::-webkit-scrollbar-thumb {
+            background: #1E293B;
+            border-radius: 2px;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+        }
+
+        .print-only {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-[#050b07] text-slate-200 min-h-screen flex flex-col">
+
+    <!-- REPORT HEADER -->
+    <header class="top-nav bg-[#1a3121] border-b-2 border-emerald-500 px-5 h-14 flex items-center justify-between no-print fixed top-0 w-full z-[10000] overflow-visible shadow-[0_0_20px_rgba(0,51,0,0.8)] gap-4">
+        <div class="flex items-center gap-3 min-w-0">
+            <button type="button" onclick="returnToAar()" class="w-9 h-9 shrink-0 bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 transition" title="ย้อนกลับและปิดรายงาน" data-i18n-title="back_close_title">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <h1 id="headerMissionTitle" class="text-sm sm:text-base font-bold text-white leading-snug truncate">
+                รายงาน AAR: สรุปภารกิจระงับไฟป่า หลวงพระบาง (#2026-04)
+            </h1>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex items-center gap-3 font-mono shrink-0">
+            <div class="bg-[#0f2417] border border-[#1e422c] px-3 py-1 rounded-lg text-xs text-emerald-400 hidden md:block" id="statusBadge" data-i18n="laos_coverage">
+                ครอบคลุม สปป.ลาว (สัญญาณวิทยุ)
+            </div>
+
+            <!-- Select Incident -->
+            <select id="incidentSelect" class="bg-[#0b1710] border border-emerald-600/50 text-emerald-400 text-xs rounded-lg px-3 py-1.5 focus:outline-none">
+                <option value="2026-04" data-i18n-opt="inc_04">เหตุการณ์ #2026-04 (หลวงพระบาง)</option>
+                <option value="2026-03" data-i18n-opt="inc_03">เหตุการณ์ #2026-02 (เขตนครหลวงเวียงจันทน์)</option>
+                <option value="2026-02" data-i18n-opt="inc_02">เหตุการณ์ #2026-03 (เขตจำปาสัก)</option>
+            </select>
+
+            <div class="relative inline-flex items-center shrink-0" id="langDropdownContainer">
+                <button onclick="toggleLangMenu()" id="langDropdownBtn" class="bg-[#121927] border border-slate-600/60 hover:border-blue-500 text-slate-200 text-xs px-3 py-1.5 rounded-lg flex items-center gap-2 focus:outline-none focus:ring-1 focus:ring-blue-500 transition shadow-md whitespace-nowrap">
+                    <span id="selectedLangText">ไทย (TH)</span>
+                    <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+                </button>
+                <div id="langMenu" class="hidden absolute right-0 top-full mt-1 w-36 bg-[#1b2234] border border-slate-600/50 rounded-lg shadow-2xl overflow-hidden text-xs z-[10002]">
+                    <button onclick="selectLanguage('TH', 'ไทย (TH)')" class="lang-option w-full text-left px-3 py-2 text-slate-200 hover:bg-[#2563eb] hover:text-white transition bg-[#2563eb] text-white">
+                        ไทย (TH)
+                    </button>
+                    <button onclick="selectLanguage('EN', 'English (EN)')" class="lang-option w-full text-left px-3 py-2 text-slate-200 hover:bg-[#2563eb] hover:text-white transition">
+                        English (EN)
+                    </button>
+                    <button onclick="selectLanguage('LA', 'ลาว (LO)')" class="lang-option w-full text-left px-3 py-2 text-slate-200 hover:bg-[#2563eb] hover:text-white transition">
+                        ลาว (LO)
+                    </button>
+                </div>
+            </div>
+
+            <div class="relative inline-block text-left shrink-0" id="profileContainer">
+                <button type="button" id="userMenuBtn" onclick="toggleUserDropdown(event)" class="w-10 h-10 bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-emerald-400 rounded-xl transition flex items-center justify-center shadow-md" aria-label="โปรไฟล์" data-i18n-aria-label="profile_label">
+                    <i class="fa-regular fa-circle-user text-lg"></i>
+                </button>
+                <div id="userDropdown" class="hidden absolute right-0 top-full mt-2 w-64 bg-[#121826] border border-slate-700/80 rounded-xl shadow-2xl p-4 text-xs text-slate-200 z-[10002]">
+                    <div class="flex items-center gap-3 pb-3 border-b border-slate-800">
+                        <div class="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+                            <i class="fa-regular fa-user"></i>
+                        </div>
+                        <span id="dropdownUserEmail" class="text-slate-400 text-[11px] truncate">user@example.com</span>
+                    </div>
+                    <button onclick="handleLogout()" class="w-full text-left mt-2 px-3 py-2.5 hover:bg-red-500/10 text-red-400 rounded-lg transition flex items-center gap-2 font-bold">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span data-i18n="btn_sign_out">ออกจากระบบ</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <main class="flex-1 mt-14 p-4 grid grid-cols-1 lg:grid-cols-4 gap-4 max-w-[1920px] mx-auto w-full">
+
+        <!-- LEFT & CENTER SECTION -->
+        <div class="lg:col-span-3 flex flex-col gap-4">
+
+            <!-- MAP CONTAINER -->
+            <div class="relative bg-[#0b1710] border border-[#14291b] rounded-xl p-2 h-[420px] flex flex-col">
+                <div class="panel-copy absolute top-4 left-20 z-[1000] max-w-[calc(100%-6rem)] bg-[#050b07]/90 border border-emerald-600/40 px-3 py-1.5 rounded-lg text-xs text-emerald-400 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="aarDataTag">โหลดข้อมูล AAR — เหตุการณ์ #2026-04 (หลวงพระบาง)</span>
+                </div>
+                <div id="map"></div>
+            </div>
+
+            <!-- METRICS CARDS ROW -->
+            <div class="bg-[#0b1710] border border-[#14291b] rounded-xl p-4">
+                <h2 id="printMissionTitle" class="print-only text-lg font-bold mb-4"></h2>
+                <div class="flex items-center justify-end mb-4 no-print">
+                    <button onclick="printReport()" class="bg-[#00e676] hover:bg-[#00c853] text-slate-950 font-bold px-4 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition shrink-0">
+                        <i class="fa-solid fa-print"></i> <span data-i18n="export_report">ส่งออก / พิมพ์รายงาน</span>
+                    </button>
+                </div>
+
+                <!-- 6 Metric Cards Grid -->
+                <div class="metric-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-xs">
+                    <div class="metric-card bg-[#070f0a] border border-[#14291b] p-3 rounded-lg flex flex-col justify-between">
+                        <p class="metric-label font-bold" data-i18n="firms_hotspots">จุดความร้อน FIRMS</p>
+                        <div>
+                            <span class="metric-value text-slate-500 font-bold text-lg block">-</span>
+                            <span id="cardFirms" class="text-[10px] text-emerald-500 font-sans" data-i18n="firms_unavail">ไม่มีข้อมูล FIRMS</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card bg-[#070f0a] border border-[#14291b] p-3 rounded-lg flex flex-col justify-between">
+                        <p class="metric-label font-bold" data-i18n="model_integration">โมเดลประมวลผล</p>
+                        <div class="flex items-baseline gap-1">
+                            <span class="metric-value text-[#00e676] text-2xl font-extrabold" data-i18n="status_on">เปิด</span>
+                            <span class="text-[10px] text-slate-400">mvp-0.2</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card bg-[#070f0a] border border-[#14291b] p-3 rounded-lg flex flex-col justify-between">
+                        <p class="metric-label font-bold" data-i18n="aar_incident_data">ข้อมูลเหตุการณ์ AAR</p>
+                        <div class="incident-status-row flex flex-col justify-end gap-1">
+                            <span id="cardAarStatus" class="metric-value text-[#00e676] text-xl font-extrabold leading-tight">สำเร็จ</span>
+                            <span id="cardAarId" class="text-[10px] text-slate-500 leading-none">#2026-04</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card bg-[#070f0a] border border-[#14291b] p-3 rounded-lg flex flex-col justify-between">
+                        <p class="metric-label font-bold" data-i18n="source_status">สถานะแหล่งข้อมูล</p>
+                        <div class="flex items-baseline gap-1">
+                            <span class="metric-value text-red-500 text-2xl font-extrabold" data-i18n="status_off">ปิด</span>
+                            <span class="text-[10px] text-slate-400">FIRMS</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-card bg-[#070f0a] border border-[#14291b] p-3 rounded-lg flex flex-col justify-between">
+                        <p class="metric-label font-bold" data-i18n="weather_source">ข้อมูลสภาพอากาศ</p>
+                        <div>
+                            <p class="metric-value text-sky-400 text-sm font-bold" data-i18n="weather_txt">สภาพอากาศ</p>
+                            <p class="text-sky-400 text-sm font-bold leading-tight"><span data-i18n="unavail">ไม่พร้อมใช้</span> <span class="text-[9px] text-slate-500 font-normal">NCM/AQ</span></p>
+                        </div>
+                    </div>
+
+                    <div class="metric-card bg-[#070f0a] border border-[#14291b] p-3 rounded-lg flex flex-col justify-between">
+                        <p class="metric-label font-bold" data-i18n="firebreak_plans">แผนแนวกันไฟ</p>
+                        <div>
+                            <p class="metric-value text-sky-400 text-sm font-bold leading-tight"><span data-i18n="unavail">ไม่พร้อมใช้</span> <span class="text-[9px] text-slate-500 font-normal">SQLite</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT ANALYTICS SIDEBAR -->
+        <div class="flex flex-col gap-4">
+            <div class="panel-copy bg-[#0b1710] border border-[#14291b] rounded-xl p-4 flex-1">
+                <h3 class="text-xs font-bold text-slate-200 mb-1" data-i18n="performance_analytics">วิเคราะห์ประสิทธิภาพ</h3>
+                <p id="analyticsSubtitle" class="text-[11px] text-slate-400 mb-4">หลวงพระบาง · เวลาตอบสนองเฉลี่ย 14 นาที</p>
+
+                <div class="mb-5">
+                    <p class="text-[10px] text-slate-400 mb-2" data-i18n="containment_success_rate">อัตราคุมเพลิงสำเร็จ</p>
+                    <div class="h-48">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                    <p class="mt-2 text-[9px] leading-relaxed text-slate-500" data-i18n="containment_chart_help">
+                        แสดงสัดส่วนพื้นที่เหตุการณ์ที่ควบคุมได้สะสม เทียบกับเวลาหลังรับแจ้งเหตุ
+                    </p>
+                </div>
+
+                <div class="mb-5">
+                    <p class="text-[10px] text-slate-400 mb-2" data-i18n="resource_efficiency">ประสิทธิภาพการใช้ทรัพยากร</p>
+                    <div class="h-48">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                    <p class="mt-2 text-[9px] leading-relaxed text-slate-500" data-i18n="resource_chart_help">
+                        เปรียบเทียบคะแนนประสิทธิภาพของทีมภาคพื้นดิน อากาศยาน และเครื่องจักรหนัก
+                    </p>
+                    <p class="mt-1 text-[9px] leading-relaxed text-amber-400/80" data-i18n="chart_sample_note">
+                        ค่ากราฟเป็นข้อมูล AAR ตัวอย่างจนกว่าจะเชื่อม incident logs จริง
+                    </p>
+                </div>
+
+                <div class="border-t border-[#14291b] pt-3">
+                    <p class="text-[10px] text-slate-400 mb-2" data-i18n="critical_incidents">สรุปตัวเลขสำคัญ</p>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between text-slate-300">
+                            <span data-i18n="saved_area">พื้นที่รักษาได้:</span>
+                            <span id="statSavedArea" class="font-bold text-[#00e676]">45,200 ไร่</span>
+                        </div>
+                        <div class="flex justify-between text-slate-300">
+                            <span data-i18n="deployed_units">ทีมปฏิบัติการ:</span>
+                            <span id="statUnits" class="font-bold text-sky-400">12 ทีม</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Dictionary แปลภาษา
+        const translations = {
+            TH: {
+                tab_strategic: "ยุทธศาสตร์",
+                tab_command: "ศูนย์บัญชาการ",
+                tab_dispatch: "สั่งการ",
+                tab_aar: "AAR สรุปแผน",
+                laos_coverage: "ครอบคลุม สปป.ลาว (สัญญาณวิทยุ)",
+                export_report: "ส่งออก / พิมพ์รายงาน",
+                btn_sign_out: "ออกจากระบบ",
+                profile_label: "โปรไฟล์",
+                back_close_title: "ย้อนกลับและปิดรายงาน",
+                firms_hotspots: "จุดความร้อน FIRMS",
+                firms_unavail: "ไม่มีข้อมูล FIRMS",
+                model_integration: "โมเดลประมวลผล",
+                aar_incident_data: "ข้อมูลเหตุการณ์ AAR",
+                source_status: "สถานะแหล่งข้อมูล",
+                weather_source: "ข้อมูลสภาพอากาศ",
+                weather_txt: "สภาพอากาศ",
+                unavail: "ไม่พร้อมใช้",
+                firebreak_plans: "แผนแนวกันไฟ",
+                performance_analytics: "วิเคราะห์ประสิทธิภาพ",
+                containment_success_rate: "อัตราคุมเพลิงสำเร็จ",
+                resource_efficiency: "ประสิทธิภาพทรัพยากร",
+                containment_chart_help: "แสดงสัดส่วนพื้นที่เหตุการณ์ที่ควบคุมได้สะสม เทียบกับเวลาหลังรับแจ้งเหตุ",
+                resource_chart_help: "เปรียบเทียบคะแนนประสิทธิภาพของทีมภาคพื้นดิน อากาศยาน และเครื่องจักรหนัก",
+                chart_sample_note: "ค่ากราฟเป็นข้อมูล AAR ตัวอย่างจนกว่าจะเชื่อม incident logs จริง",
+                chart_containment_dataset: "พื้นที่ควบคุมได้สะสม",
+                chart_time_axis: "เวลาหลังรับแจ้งเหตุ (นาที)",
+                chart_containment_axis: "พื้นที่ควบคุมได้ (%)",
+                chart_resource_dataset: "คะแนนประสิทธิภาพ",
+                chart_resource_axis: "ประเภททรัพยากร",
+                chart_efficiency_axis: "คะแนนประสิทธิภาพ (%)",
+                chart_ground: "ทีมภาคพื้นดิน",
+                chart_air: "อากาศยาน",
+                chart_heavy: "เครื่องจักรหนัก",
+                critical_incidents: "สรุปตัวเลขสำคัญ",
+                saved_area: "พื้นที่รักษาได้:",
+                deployed_units: "ทีมปฏิบัติการ:",
+                status_on: "เปิด",
+                status_off: "ปิด",
+                inc_04: "เหตุการณ์ #2026-04 (หลวงพระบาง)",
+                inc_03: "เหตุการณ์ #2026-03 (เขตนครหลวงเวียงจันทน์)",
+                inc_02: "เหตุการณ์ #2026-02 (เขตจำปาสัก)",
+                unit_area: "ไร่",
+                unit_teams: "ทีม",
+                unit_min: "นาที",
+                status_successful: "สำเร็จ",
+                status_contained: "ควบคุมได้แล้ว",
+                aar_loaded: "โหลดข้อมูล AAR — เหตุการณ์",
+                mission_prefix: "รายงาน AAR: สรุปภารกิจระงับไฟป่า",
+                avg_response: "เวลาตอบสนองเฉลี่ย"
+            },
+            LA: {
+                tab_strategic: "ຍຸດທະສາດ",
+                tab_command: "ສູນບັນຊາການ",
+                tab_dispatch: "ສັ່ງການ",
+                tab_aar: "AAR ສະຫຼຸບແຜນ",
+                laos_coverage: "ກວມເອົາ ສປປ ລາວ (ສັນຍານວິທະຍຸ)",
+                export_report: "ສົ່ງອອກ / ພິມບົດລາຍງານ",
+                btn_sign_out: "ອອກຈາກລະບົບ",
+                profile_label: "ໂປຣໄຟລ໌",
+                back_close_title: "ກັບຄືນ ແລະ ປິດບົດລາຍງານ",
+                firms_hotspots: "ຈຸດຄວາມຮ້ອນ FIRMS",
+                firms_unavail: "ບໍ່ມີຂໍ້ມູນ FIRMS",
+                model_integration: "ໂມເດນປະມວນຜົນ",
+                aar_incident_data: "ຂໍ້ມູນເຫດການ AAR",
+                source_status: "ສະຖານະແຫຼ່ງຂໍ້ມູນ",
+                weather_source: "ຂໍ້ມູນສະພາບອາກາດ",
+                weather_txt: "ສະພາບອາກາດ",
+                unavail: "ບໍ່ພ້ອມໃຊ້ງານ",
+                firebreak_plans: "ແຜນແນວກັນໄຟ",
+                performance_analytics: "ວິເຄາະປະສິດທິພາບ",
+                containment_success_rate: "ອັດຕາຄວບຄຸມໄຟສໍາເລັດ",
+                resource_efficiency: "ປະສິດທິພາບຊັບພະຍາກອນ",
+                containment_chart_help: "ສະແດງສັດສ່ວນພື້ນທີ່ເຫດການທີ່ຄວບຄຸມໄດ້ສະສົມ ທຽບກັບເວລາຫຼັງຮັບແຈ້ງ",
+                resource_chart_help: "ປຽບທຽບຄະແນນປະສິດທິພາບຂອງທີມພາກພື້ນດິນ, ອາກາດ ແລະ ເຄື່ອງຈັກໜັກ",
+                chart_sample_note: "ຄ່າໃນກຣາຟເປັນຂໍ້ມູນ AAR ຕົວຢ່າງ ຈົນກວ່າຈະເຊື່ອມ incident logs ຈິງ",
+                chart_containment_dataset: "ພື້ນທີ່ຄວບຄຸມໄດ້ສະສົມ",
+                chart_time_axis: "ເວລາຫຼັງຮັບແຈ້ງ (ນາທີ)",
+                chart_containment_axis: "ພື້ນທີ່ຄວບຄຸມໄດ້ (%)",
+                chart_resource_dataset: "ຄະແນນປະສິດທິພາບ",
+                chart_resource_axis: "ປະເພດຊັບພະຍາກອນ",
+                chart_efficiency_axis: "ຄະແນນປະສິດທິພາບ (%)",
+                chart_ground: "ທີມພາກພື້ນດິນ",
+                chart_air: "ອາກາດຍານ",
+                chart_heavy: "ເຄື່ອງຈັກໜັກ",
+                critical_incidents: "ສະຫຼຸບຕົວເລກສໍາຄັນ",
+                saved_area: "ພື້ນທີ່ຮັກສາໄດ້:",
+                deployed_units: "ທີມປະຕິບັດການ:",
+                status_on: "ເປີດ",
+                status_off: "ປິດ",
+                inc_04: "ເຫດການ #2026-04 (ຫຼວງພະບາງ)",
+                inc_03: "ເຫດການ #2026-03 (ເຂດນະຄອນຫຼວງວຽງຈັນ)",
+                inc_02: "ເຫດການ #2026-02 (ເຂດຈຳປາສັກ)",
+                unit_area: "ໄຮ່",
+                unit_teams: "ທີມ",
+                unit_min: "ນາທີ",
+                status_successful: "ສຳເລັດ",
+                status_contained: "ຄວບຄຸມໄດ້ແລ້ວ",
+                aar_loaded: "ໂຫລດຂໍ້ມູນ AAR — ເຫດການ",
+                mission_prefix: "ບົດລາຍງານ AAR: ສະຫຼຸບພາລະກິດດັບໄຟປ່າ",
+                avg_response: "ເວລາຕອບສະໜອງສະເລ່ຍ"
+            },
+            EN: {
+                tab_strategic: "Strategic",
+                tab_command: "Command",
+                tab_dispatch: "Dispatch",
+                tab_aar: "AAR",
+                laos_coverage: "Lao PDR Coverage (Radio)",
+                export_report: "Export / Print Report",
+                btn_sign_out: "Sign Out",
+                profile_label: "Profile",
+                back_close_title: "Go back and close report",
+                firms_hotspots: "FIRMS HOTSPOTS",
+                firms_unavail: "FIRMS unavailable",
+                model_integration: "MODEL INTEGRATION",
+                aar_incident_data: "AAR INCIDENT DATA",
+                source_status: "SOURCE STATUS",
+                weather_source: "WEATHER SOURCE",
+                weather_txt: "weather",
+                unavail: "unavailable",
+                firebreak_plans: "FIREBREAK PLANS",
+                performance_analytics: "Performance Analytics",
+                containment_success_rate: "Containment Success Rate",
+                resource_efficiency: "Resource Efficiency",
+                containment_chart_help: "Cumulative share of the incident area brought under control over time after the alert.",
+                resource_chart_help: "Efficiency scores for ground crews, aviation, and heavy machinery.",
+                chart_sample_note: "Chart values remain sample AAR data until real incident logs are connected.",
+                chart_containment_dataset: "Cumulative area contained",
+                chart_time_axis: "Minutes after alert",
+                chart_containment_axis: "Incident area contained (%)",
+                chart_resource_dataset: "Efficiency score",
+                chart_resource_axis: "Resource type",
+                chart_efficiency_axis: "Efficiency score (%)",
+                chart_ground: "Ground crews",
+                chart_air: "Aviation",
+                chart_heavy: "Heavy machinery",
+                critical_incidents: "Critical Incidents",
+                saved_area: "Saved Area:",
+                deployed_units: "Deployed Units:",
+                status_on: "ON",
+                status_off: "OFF",
+                inc_04: "Incident #2026-04 (Luang Prabang)",
+                inc_03: "Incident #2026-03 (Vientiane Sector)",
+                inc_02: "Incident #2026-02 (Champasak Sector)",
+                unit_area: "Rai",
+                unit_teams: "Teams",
+                unit_min: "min",
+                status_successful: "SUCCESSFUL",
+                status_contained: "CONTAINED",
+                aar_loaded: "AAR DATA LOADED — INCIDENT",
+                mission_prefix: "AAR Report: Mission Summary:",
+                avg_response: "Avg response"
+            }
+        };
+
+        let currentLangCode = 'TH';
+
+        function normalizeSavedLang(lang) {
+            const value = String(lang || '').toLowerCase();
+            if (value === 'en') return 'EN';
+            if (value === 'lo' || value === 'la') return 'LA';
+            return 'TH';
+        }
+
+        function langLabel(langCode) {
+            return {
+                TH: 'ไทย (TH)',
+                EN: 'English (EN)',
+                LA: 'ลาว (LO)'
+            }[langCode] || 'ไทย (TH)';
+        }
+
+        function persistLang(langCode) {
+            const normalized = langCode === 'LA' ? 'lo' : langCode.toLowerCase();
+            localStorage.setItem('kwanlong_lang', normalized);
+            localStorage.setItem('app_lang', normalized);
+        }
+
+        const incidentDatabase = {
+            "2026-04": {
+                sector: {
+                    TH: "หลวงพระบาง",
+                    LA: "ຫຼວງພະບາງ",
+                    EN: "Luang Prabang"
+                },
+                responseNum: 14,
+                savedAreaNum: "45,200",
+                statusKey: "status_successful",
+                lat: 19.8833,
+                lng: 102.1333,
+                lineData: [40, 48, 55, 65, 75, 84, 92],
+                barData: [85, 90, 78]
+            },
+            "2026-03": {
+                sector: {
+                    TH: "เวียงจันทน์",
+                    LA: "ວຽງຈັນ",
+                    EN: "Vientiane Sector"
+                },
+                responseNum: 21,
+                savedAreaNum: "18,750",
+                statusKey: "status_contained",
+                lat: 17.9757,
+                lng: 102.6331,
+                lineData: [30, 38, 45, 53, 60, 70, 80],
+                barData: [60, 75, 70]
+            },
+            "2026-02": {
+                sector: {
+                    TH: "จำปาสัก",
+                    LA: "ຈຳປາສັກ",
+                    EN: "Champasak Sector"
+                },
+                responseNum: 17,
+                savedAreaNum: "31,400",
+                statusKey: "status_successful",
+                lat: 15.1167,
+                lng: 105.8000,
+                lineData: [25, 38, 50, 65, 80, 88, 95],
+                barData: [90, 82, 88]
+            }
+        };
+
+        let currentIncidentId = "2026-04";
+
+        // Logic เปิด/ปิด Dropdown ภาษา
+        function toggleLangMenu() {
+            document.getElementById('langMenu').classList.toggle('hidden');
+        }
+
+        function selectLanguage(langCode, labelText) {
+            document.getElementById('selectedLangText').textContent = labelText;
+            document.getElementById('langMenu').classList.add('hidden');
+
+            const options = document.querySelectorAll('.lang-option');
+            options.forEach(opt => {
+                if (opt.textContent.trim() === labelText) {
+                    opt.classList.add('bg-[#2563eb]', 'text-white');
+                } else {
+                    opt.classList.remove('bg-[#2563eb]', 'text-white');
+                }
+            });
+
+            currentLangCode = langCode;
+            persistLang(langCode);
+            applyLanguage(langCode);
+        }
+
+        // ปิด Dropdown เมื่อคลิกข้างนอก
+        window.addEventListener('click', function(e) {
+            const container = document.getElementById('langDropdownContainer');
+            if (container && !container.contains(e.target)) {
+                document.getElementById('langMenu').classList.add('hidden');
+            }
+        });
+
+        // สลับภาษาทั้งหน้าเว็บ
+        function applyLanguage(lang) {
+            // 1. ข้อความใน data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    el.innerText = translations[lang][key];
+                }
+            });
+
+            document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                const key = el.getAttribute('data-i18n-title');
+                if (translations[lang][key]) el.title = translations[lang][key];
+            });
+
+            document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+                const key = el.getAttribute('data-i18n-aria-label');
+                if (translations[lang][key]) el.setAttribute('aria-label', translations[lang][key]);
+            });
+
+            // 2. ตัวเลือก Dropdown เหตุการณ์
+            document.querySelectorAll('[data-i18n-opt]').forEach(el => {
+                const key = el.getAttribute('data-i18n-opt');
+                if (translations[lang][key]) {
+                    el.text = translations[lang][key];
+                }
+            });
+
+            // 3. Dynamic Text ที่พึ่งพาการคำนวณหรือพารามิเตอร์
+            updateDynamicTexts();
+        }
+
+        function updateDynamicTexts() {
+            const lang = currentLangCode;
+            const t = translations[lang];
+            const data = incidentDatabase[currentIncidentId];
+            const sectorName = data.sector[lang];
+
+            document.getElementById('aarDataTag').textContent = `${t.aar_loaded} #${currentIncidentId} (${sectorName})`;
+            const missionTitle = `${t.mission_prefix} ${sectorName} (#${currentIncidentId})`;
+            document.getElementById('headerMissionTitle').textContent = missionTitle;
+            document.getElementById('printMissionTitle').textContent = missionTitle;
+            document.title = missionTitle;
+            document.getElementById('analyticsSubtitle').textContent = `${sectorName} · ${t.avg_response} ${data.responseNum} ${t.unit_min}`;
+            document.getElementById('cardAarStatus').textContent = t[data.statusKey];
+            document.getElementById('statSavedArea').textContent = `${data.savedAreaNum} ${t.unit_area}`;
+            document.getElementById('statUnits').textContent = `12 ${t.unit_teams}`;
+            updateChartLanguage();
+        }
+
+        function chartScaleOptions(xTitle, yTitle) {
+            const gridColor = 'rgba(148, 163, 184, 0.12)';
+            const tickColor = '#94a3b8';
+            return {
+                x: {
+                    grid: { color: gridColor },
+                    ticks: { color: tickColor, font: { size: 9 } },
+                    title: { display: true, text: xTitle, color: '#cbd5e1', font: { size: 10, weight: '600' } }
+                },
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: { color: gridColor },
+                    ticks: {
+                        color: tickColor,
+                        stepSize: 20,
+                        font: { size: 9 },
+                        callback: value => `${value}%`
+                    },
+                    title: { display: true, text: yTitle, color: '#cbd5e1', font: { size: 10, weight: '600' } }
+                }
+            };
+        }
+
+        function updateChartLanguage() {
+            if (typeof lineChart === 'undefined' || typeof barChart === 'undefined' || !lineChart || !barChart) return;
+            const t = translations[currentLangCode];
+            lineChart.data.datasets[0].label = t.chart_containment_dataset;
+            lineChart.options.scales.x.title.text = t.chart_time_axis;
+            lineChart.options.scales.y.title.text = t.chart_containment_axis;
+            barChart.data.labels = [t.chart_ground, t.chart_air, t.chart_heavy];
+            barChart.data.datasets[0].label = t.chart_resource_dataset;
+            barChart.options.scales.x.title.text = t.chart_resource_axis;
+            barChart.options.scales.y.title.text = t.chart_efficiency_axis;
+            lineChart.update();
+            barChart.update();
+        }
+
+        // Initialize Map
+        let map = L.map('map').setView([19.8833, 102.1333], 11);
+        let satelliteTile = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 17
+        });
+        satelliteTile.addTo(map);
+        L.control.scale({
+            imperial: true,
+            metric: true
+        }).addTo(map);
+
+        let mapCircle = L.circle([19.8833, 102.1333], {
+            color: '#00e676',
+            fillColor: '#00e676',
+            fillOpacity: 0.15,
+            radius: 4500
+        }).addTo(map);
+        let mapMarker = L.marker([19.8833, 102.1333]).addTo(map);
+
+        // Initialize Charts
+        const lineCtx = document.getElementById('lineChart').getContext('2d');
+        let lineChart = new Chart(lineCtx, {
+            type: 'line',
+            data: {
+                labels: ['0', '10', '20', '30', '40', '50', '60'],
+                datasets: [{
+                    label: translations.TH.chart_containment_dataset,
+                    data: [40, 48, 55, 65, 75, 84, 92],
+                    borderColor: '#38bdf8',
+                    backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    pointBackgroundColor: '#38bdf8'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: { color: '#cbd5e1', boxWidth: 10, boxHeight: 10, font: { size: 9 } }
+                    },
+                    tooltip: {
+                        callbacks: { label: context => `${context.dataset.label}: ${context.parsed.y}%` }
+                    }
+                },
+                scales: chartScaleOptions(translations.TH.chart_time_axis, translations.TH.chart_containment_axis)
+            }
+        });
+
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        let barChart = new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: [translations.TH.chart_ground, translations.TH.chart_air, translations.TH.chart_heavy],
+                datasets: [{
+                    label: translations.TH.chart_resource_dataset,
+                    data: [85, 90, 78],
+                    backgroundColor: ['#34d399', '#38bdf8', '#f59e0b'],
+                    borderRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: { color: '#cbd5e1', boxWidth: 10, boxHeight: 10, font: { size: 9 } }
+                    },
+                    tooltip: {
+                        callbacks: { label: context => `${context.dataset.label}: ${context.parsed.y}%` }
+                    }
+                },
+                scales: chartScaleOptions(translations.TH.chart_resource_axis, translations.TH.chart_efficiency_axis)
+            }
+        });
+
+        function updateDashboard(id) {
+            currentIncidentId = id;
+            const data = incidentDatabase[id];
+            if (!data) return;
+
+            document.getElementById('cardAarId').textContent = `#${id}`;
+
+            map.flyTo([data.lat, data.lng], 11);
+            mapCircle.setLatLng([data.lat, data.lng]);
+            mapMarker.setLatLng([data.lat, data.lng]);
+
+            lineChart.data.datasets[0].data = data.lineData;
+            lineChart.update();
+            barChart.data.datasets[0].data = data.barData;
+            barChart.update();
+
+            updateDynamicTexts();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const incidentParam = urlParams.get('incident');
+            const selectEl = document.getElementById('incidentSelect');
+            const savedLang = normalizeSavedLang(localStorage.getItem('kwanlong_lang') || localStorage.getItem('app_lang') || 'th');
+
+            selectLanguage(savedLang, langLabel(savedLang));
+
+            if (incidentParam && incidentDatabase[incidentParam]) {
+                selectEl.value = incidentParam;
+                updateDashboard(incidentParam);
+            } else {
+                updateDashboard('2026-04');
+            }
+
+            selectEl.addEventListener('change', (e) => updateDashboard(e.target.value));
+            loadUserProfile();
+
+            if (urlParams.get('print') === '1') {
+                window.addEventListener('load', () => {
+                    setTimeout(printReport, 800);
+                }, { once: true });
+            }
+        });
+
+        function printReport() {
+            document.title = document.getElementById('headerMissionTitle').textContent.trim();
+            window.print();
+        }
+
+        function returnToAar() {
+            if (window.opener && !window.opener.closed) {
+                window.opener.focus();
+            }
+            window.close();
+
+            // Browsers only allow scripts to close tabs opened by the app.
+            // If closing is blocked, return to the AAR view in this tab instead.
+            setTimeout(() => {
+                window.location.replace('dashboard.html#aar');
+            }, 150);
+        }
+
+        function toggleUserDropdown(event) {
+            if (event) event.stopPropagation();
+            document.getElementById('userDropdown').classList.toggle('hidden');
+        }
+
+        function loadUserProfile() {
+            const rawUser = localStorage.getItem('user');
+            if (!rawUser) return;
+            try {
+                const user = JSON.parse(rawUser);
+                const email = typeof user === 'string' ? user : (user.email || user.username || '');
+                if (email) document.getElementById('dropdownUserEmail').textContent = email;
+            } catch (error) {
+                document.getElementById('dropdownUserEmail').textContent = rawUser;
+            }
+        }
+
+        async function handleLogout() {
+            localStorage.removeItem('user');
+            try {
+                await fetch('/api/logout', {
+                    method: 'POST',
+                    credentials: 'same-origin'
+                });
+            } finally {
+                window.location.href = '/index.html';
+            }
+        }
+
+        document.addEventListener('click', (event) => {
+            const profile = document.getElementById('profileContainer');
+            if (profile && !profile.contains(event.target)) {
+                document.getElementById('userDropdown').classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+
+</html>

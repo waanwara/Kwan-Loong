@@ -1,0 +1,128 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://wildfire-analytics.internal/schemas/model-output-v0.2.json",
+    "title": "WildfireModelOutput",
+    "description": "Standard output contract returned from Wildfire Analysis Engine to Backend Service.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "status",
+        "model_version",
+        "summary",
+        "predictions",
+        "arrival_time_grid"
+    ],
+    "properties": {
+        "status": {
+            "type": "string",
+            "enum": ["success", "error"],
+            "description": "Execution status of the simulation."
+        },
+        "model_version": {
+            "type": "string",
+            "description": "Semantic version or identifier of the analysis model."
+        },
+        "summary": {
+            "type": "object",
+            "description": "Overall scalar outputs from the Rothermel-inspired MVP spread baseline.",
+            "additionalProperties": false,
+            "required": [
+                "rate_of_spread_m_min",
+                "spread_direction_deg",
+                "fuel_model_applied"
+            ],
+            "properties": {
+                "rate_of_spread_m_min": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "description": "Calculated forward rate of spread in metres per minute."
+                },
+                "spread_direction_deg": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "exclusiveMaximum": 360.0,
+                    "description": "Resultant spread heading angle (0=North, 90=East) combined from wind and slope."
+                },
+                "fuel_model_applied": {
+                    "type": "string",
+                    "description": "The fuel model code used during calculation."
+                },
+                "intermediate_factors": {
+                    "type": "object",
+                    "description": "Sub-factors from the heuristic spread baseline for auditing/debugging.",
+                    "additionalProperties": true,
+                    "properties": {
+                        "base_ros_m_min": { "type": "number" },
+                        "moisture_damping": { "type": "number" },
+                        "wind_factor": { "type": "number" },
+                        "slope_factor": { "type": "number" }
+                    }
+                }
+            }
+        },
+        "predictions": {
+            "type": "object",
+            "description": "Fire propagation perimeter points grouped by output interval timestamps.",
+            "additionalProperties": {
+                "type": "array",
+                "description": "List of perimeter vertices in projected Cartesian coordinates (metres).",
+                "items": {
+                    "type": "object",
+                    "required": ["x_m", "y_m"],
+                    "additionalProperties": false,
+                    "properties": {
+                        "x_m": {
+                            "type": "number",
+                            "description": "Projected X coordinate (Easting in metres)."
+                        },
+                        "y_m": {
+                            "type": "number",
+                            "description": "Projected Y coordinate (Northing in metres)."
+                        }
+                    }
+                }
+            }
+        },
+        "arrival_time_grid": {
+            "type": "object",
+            "description": "MVP arrival-time cells in projected metre coordinates.",
+            "additionalProperties": false,
+            "required": ["cell_size_m", "origin_x_m", "origin_y_m", "cells"],
+            "properties": {
+                "cell_size_m": {
+                    "type": "number",
+                    "exclusiveMinimum": 0.0
+                },
+                "origin_x_m": {
+                    "type": "number"
+                },
+                "origin_y_m": {
+                    "type": "number"
+                },
+                "cells": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["i", "j", "x_m", "y_m", "arrival_min"],
+                        "properties": {
+                            "i": {"type": "integer"},
+                            "j": {"type": "integer"},
+                            "x_m": {"type": "number"},
+                            "y_m": {"type": "number"},
+                            "arrival_min": {
+                                "type": "number",
+                                "minimum": 0.0
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "metadata": {
+            "type": "object",
+            "description": "Execution diagnostics such as elapsed compute time.",
+            "additionalProperties": true
+        }
+    }
+}

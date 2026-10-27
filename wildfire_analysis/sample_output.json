@@ -1,0 +1,162 @@
+{
+  "status": "success",
+  "model_version": "mvp-0.2.0",
+  "summary": {
+    "rate_of_spread_m_min": 0.7602,
+    "spread_direction_deg": 42.34,
+    "fuel_model_applied": "DEMO_FOREST",
+    "intermediate_factors": {
+      "base_ros_m_min": 0.8,
+      "moisture_damping": 0.78,
+      "wind_factor": 1.2,
+      "slope_factor": 1.0153,
+      "effective_upslope_deg": 315.0,
+      "downwind_deg": 90.0
+    }
+  },
+  "predictions": {
+    "30": [
+      {
+        "x_m": 523465.36,
+        "y_m": 2198466.86
+      },
+      {
+        "x_m": 523457.59,
+        "y_m": 2198443.09
+      },
+      {
+        "x_m": 523447.7,
+        "y_m": 2198447.47
+      },
+      {
+        "x_m": 523442.41,
+        "y_m": 2198456.91
+      }
+    ],
+    "60": [
+      {
+        "x_m": 523480.72,
+        "y_m": 2198483.71
+      },
+      {
+        "x_m": 523465.17,
+        "y_m": 2198436.18
+      },
+      {
+        "x_m": 523445.39,
+        "y_m": 2198444.94
+      },
+      {
+        "x_m": 523434.83,
+        "y_m": 2198463.82
+      }
+    ],
+    "120": [
+      {
+        "x_m": 523511.44,
+        "y_m": 2198517.43
+      },
+      {
+        "x_m": 523480.34,
+        "y_m": 2198422.35
+      },
+      {
+        "x_m": 523440.78,
+        "y_m": 2198439.89
+      },
+      {
+        "x_m": 523419.66,
+        "y_m": 2198477.65
+      }
+    ]
+  },
+  "arrival_time_grid": {
+    "cell_size_m": 30.0,
+    "origin_x_m": 523450.0,
+    "origin_y_m": 2198450.0,
+    "cells": [
+      {
+        "i": 0,
+        "j": 0,
+        "x_m": 523450.0,
+        "y_m": 2198450.0,
+        "arrival_min": 0.0
+      },
+      {
+        "i": 1,
+        "j": 0,
+        "x_m": 523480.0,
+        "y_m": 2198450.0,
+        "arrival_min": 55.68
+      },
+      {
+        "i": 2,
+        "j": 0,
+        "x_m": 523510.0,
+        "y_m": 2198450.0,
+        "arrival_min": 111.36
+      },
+      {
+        "i": -1,
+        "j": 1,
+        "x_m": 523420.0,
+        "y_m": 2198480.0,
+        "arrival_min": 119.7
+      },
+      {
+        "i": 0,
+        "j": 1,
+        "x_m": 523450.0,
+        "y_m": 2198480.0,
+        "arrival_min": 53.24
+      },
+      {
+        "i": 1,
+        "j": 1,
+        "x_m": 523480.0,
+        "y_m": 2198480.0,
+        "arrival_min": 56.73
+      },
+      {
+        "i": 2,
+        "j": 1,
+        "x_m": 523510.0,
+        "y_m": 2198480.0,
+        "arrival_min": 101.3
+      },
+      {
+        "i": 0,
+        "j": 2,
+        "x_m": 523450.0,
+        "y_m": 2198510.0,
+        "arrival_min": 106.48
+      },
+      {
+        "i": 1,
+        "j": 2,
+        "x_m": 523480.0,
+        "y_m": 2198510.0,
+        "arrival_min": 97.66
+      },
+      {
+        "i": 2,
+        "j": 2,
+        "x_m": 523510.0,
+        "y_m": 2198510.0,
+        "arrival_min": 113.46
+      }
+    ]
+  },
+  "metadata": {
+    "cell_size_m": 30.0,
+    "duration_minutes": 120,
+    "assumptions": [
+      "single point ignition",
+      "uniform steady-state weather, terrain, and fuel",
+      "Rothermel-inspired heuristic ROS baseline",
+      "radial directional arrival-time grid, not calibrated cellular automata",
+      "perimeter predictions are compatibility ellipse vertices",
+      "non-operational research baseline"
+    ]
+  }
+}

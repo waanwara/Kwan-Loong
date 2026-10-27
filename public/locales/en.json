@@ -1,0 +1,93 @@
+{
+    "commandHub": "Command Center",
+    "navStrategic": "Strategic",
+    "navCommand": "Command",
+    "navDispatch": "Operations",
+    "sendCoords": "Send Coordinates via Radio/Mobile",
+    "deployUnits": "Deploy Units",
+
+    "tacticalHub": "Field Operations Center",
+    "tacticalSubtitle": "Situational map with heat, wind, and firebreak information",
+    "telemetry": "Situational Data",
+    "windVector": "Wind",
+    "spreadSpeed": "Fire Spread Speed",
+    "terrainSlope": "Terrain Slope",
+    "boundaryLayer": "Administrative Boundary",
+
+    "heatLayers": "Heat & Wind Layers",
+    "heatLow": "Low",
+    "heatMed": "Medium",
+    "heatHigh": "High",
+    "heatExtreme": "Extreme",
+
+    "modelInputs": "Rothermel Model Inputs",
+    "fuelModel": "Fuel Type",
+    "wind": "Wind",
+    "direction": "Direction",
+    "slope": "Slope",
+    "moisture": "Moisture",
+    "estimateSpread": "Estimate Spread",
+
+    "firebreakTitle": "Set Firebreak",
+    "saveFirebreak": "Save Firebreak",
+
+    "spreadTimeline": "Fire Spread Timeline",
+    "spreadTimelineSub": "Simulate Fire Spread",
+
+    "aar_sector4_summary": "Sector 4 Incident Response Summary (Active Fire Incident #2026-03)",
+    "aar_sector7_summary": "Sector 7 Incident Response Summary (Active Fire Incident #2026-02)",
+
+    "aar_avg_response": "Average Response Time",
+    "aar_saved_area": "Area Preserved",
+    "aar_resources": "Resources Used",
+    "aar_mission_status": "Mission Status",
+
+    "aar_minutes": "minutes",
+    "aar_rai": "rai",
+
+    "aar_sector4_resources": "2 Teams / 1 UAV",
+    "aar_sector7_resources": "3 Teams / 1 Helicopter",
+
+    "aar_status_contained": "CONTAINED",
+    "aar_status_successful": "SUCCESSFUL",
+
+    "lessons_learned_title": "Lessons Learned:",
+
+    "sector4_lesson_1": "Deploying a UAV to survey the fire line before sending ground teams helps reduce the risk of entering the area.",
+    "sector4_lesson_2": "Wind direction monitoring in mountainous areas should be improved to optimize firebreak positioning.",
+
+    "sector7_lesson_1": "Combining hotspot data with weather information improves the accuracy of monitored areas.",
+    "sector7_lesson_2": "Backup water refill points should be prepared in advance in areas with a high risk of recurring fires.",
+
+    "statuses": {
+        "waitingHeat": "Waiting for FIRMS data or model results",
+        "waitingBackend": "Waiting for backend",
+        "noFirebreak": "No firebreak available",
+        "firebreakSaving": "Saving firebreak...",
+        "boundaryLoading": "Loading",
+        "boundaryUnavailable": "Unavailable",
+        "boundaryReady": "Provincial-level boundary",
+        "firebreakSaved": "{{count}} firebreaks saved",
+        "modelHeatLayer": "Model heat layer | {{count}} cells",
+        "firmsHeatLayer": "{{source}} | {{count}} hotspots"
+    },
+
+    "alerts": {
+        "dispatchOk": "Operation command sent successfully",
+        "radioOk": "Target coordinates sent to radio successfully"
+    },
+
+    "units": {
+        "hourShort": "hr."
+    },
+
+    "login": {
+        "title": "Login",
+        "emailLabel": "Email",
+        "passwordLabel": "Password",
+        "button": "Login",
+        "checking": "Checking...",
+        "success": "Login successful. Redirecting to operations...",
+        "connError": "Unable to connect to server"
+    }
+}

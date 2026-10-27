@@ -1,0 +1,93 @@
+{
+    "commandHub": "ศูนย์บัญชาการ",
+    "navStrategic": "ยุทธศาสตร์",
+    "navCommand": "บัญชาการ",
+    "navDispatch": "ปฏิบัติการ",
+    "sendCoords": "ส่งพิกัดวิทยุ",
+    "deployUnits": "ส่งกำลัง",
+
+    "tacticalHub": "ศูนย์ปฏิบัติการภาคสนาม",
+    "tacticalSubtitle": "แผนที่สถานการณ์พร้อมข้อมูลความร้อน ลม และแนวกันไฟ",
+    "telemetry": "ข้อมูลสถานการณ์",
+    "windVector": "ลม",
+    "spreadSpeed": "ความเร็วการลามของไฟ",
+    "terrainSlope": "ความลาดชัน",
+    "boundaryLayer": "ขอบเขตการปกครอง",
+
+    "heatLayers": "ชั้นข้อมูลความร้อนและลม",
+    "heatLow": "ต่ำ",
+    "heatMed": "ปานกลาง",
+    "heatHigh": "สูง",
+    "heatExtreme": "รุนแรง",
+
+    "modelInputs": "ข้อมูลนำเข้า Rothermel",
+    "fuelModel": "ประเภทเชื้อเพลิง",
+    "wind": "ลม",
+    "direction": "ทิศทาง",
+    "slope": "ความลาดชัน",
+    "moisture": "ความชื้น",
+    "estimateSpread": "คำนวณการลาม",
+
+    "firebreakTitle": "กำหนดแนวกันไฟ",
+    "saveFirebreak": "บันทึกแนวกันไฟ",
+
+    "spreadTimeline": "คาดการณ์เวลาการลามของไฟ",
+    "spreadTimelineSub": "จำลองการลามของไฟ",
+
+    "aar_sector4_summary": "สรุปภารกิจควบคุมเหตุ Sector 4 (Active Fire Incident #2026-03)",
+    "aar_sector7_summary": "สรุปภารกิจควบคุมเหตุ Sector 7 (Active Fire Incident #2026-02)",
+
+    "aar_avg_response": "เวลาตอบสนองเฉลี่ย",
+    "aar_saved_area": "พื้นที่ที่รักษาไว้ได้",
+    "aar_resources": "ทรัพยากรที่ใช้",
+    "aar_mission_status": "สถานะภารกิจ",
+
+    "aar_minutes": "นาที",
+    "aar_rai": "ไร่",
+
+    "aar_sector4_resources": "2 ทีม / 1 UAV",
+    "aar_sector7_resources": "3 ทีม / 1 คอปเตอร์",
+
+    "aar_status_contained": "CONTAINED",
+    "aar_status_successful": "SUCCESSFUL",
+
+    "lessons_learned_title": "บทเรียนที่ได้รับ:",
+
+    "sector4_lesson_1": "การส่ง UAV สำรวจแนวไฟก่อนส่งทีมภาคพื้นดินช่วยลดความเสี่ยงในการเข้าพื้นที่",
+    "sector4_lesson_2": "ควรเพิ่มการติดตามทิศทางลมบริเวณแนวเขาเพื่อปรับตำแหน่งแนวกันไฟให้เหมาะสม",
+
+    "sector7_lesson_1": "การใช้ข้อมูล Hotspot ร่วมกับข้อมูลสภาพอากาศช่วยให้กำหนดพื้นที่เฝ้าระวังได้แม่นยำขึ้น",
+    "sector7_lesson_2": "ควรเตรียมจุดเติมน้ำสำรองล่วงหน้าในพื้นที่ที่มีโอกาสเกิดไฟซ้ำสูง",
+
+    "statuses": {
+        "waitingHeat": "รอข้อมูล FIRMS หรือผลจากโมเดล",
+        "waitingBackend": "รอ backend",
+        "noFirebreak": "ยังไม่มีแนวกันไฟ",
+        "firebreakSaving": "กำลังบันทึกแนวกันไฟ...",
+        "boundaryLoading": "กำลังโหลด",
+        "boundaryUnavailable": "ไม่พร้อมใช้งาน",
+        "boundaryReady": "ขอบเขตระดับจังหวัด",
+        "firebreakSaved": "บันทึกแนวกันไฟแล้ว {{count}} แนว",
+        "modelHeatLayer": "ชั้นความร้อนจากโมเดล | {{count}} cells",
+        "firmsHeatLayer": "{{source}} | {{count}} จุดความร้อน"
+    },
+
+    "alerts": {
+        "dispatchOk": "ส่งคำสั่งปฏิบัติการสำเร็จ",
+        "radioOk": "ส่งพิกัดเป้าหมายไปยังวิทยุสำเร็จ"
+    },
+
+    "units": {
+        "hourShort": "ชม."
+    },
+
+    "login": {
+        "title": "เข้าสู่ระบบ",
+        "emailLabel": "อีเมล",
+        "passwordLabel": "รหัสผ่าน",
+        "button": "เข้าสู่ระบบ",
+        "checking": "กำลังตรวจสอบ...",
+        "success": "เข้าสู่ระบบสำเร็จ กำลังไปหน้าปฏิบัติการ...",
+        "connError": "ไม่สามารถเชื่อมต่อ server ได้"
+    }
+}

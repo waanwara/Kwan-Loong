@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "status": "DEMO_ONLY",
+    "warning": "Replace all demo mappings and parameters with literature-supported values before research conclusions or operational use."
+  },
+  "land_cover_mapping": {
+    "grass": {"fuel_category": "grass", "fuel_model": "DEMO_GRASS"},
+    "shrub_and_scrub": {"fuel_category": "shrub", "fuel_model": "DEMO_SHRUB"},
+    "trees": {"fuel_category": "forest", "fuel_model": "DEMO_FOREST"},
+    "crops": {"fuel_category": "agriculture", "fuel_model": "DEMO_GRASS"},
+    "flooded_vegetation": {"fuel_category": "wet_vegetation", "fuel_model": null},
+    "water": {"fuel_category": "non_burnable", "fuel_model": null},
+    "built": {"fuel_category": "non_burnable", "fuel_model": null},
+    "bare": {"fuel_category": "non_burnable", "fuel_model": null},
+    "snow_and_ice": {"fuel_category": "non_burnable", "fuel_model": null}
+  },
+  "fuel_models": {
+    "DEMO_GRASS": {
+      "base_ros_m_min": 4.0,
+      "reference_moisture": 0.15,
+      "wind_coefficient": 0.08,
+      "slope_coefficient": 0.05,
+      "description": "Demo grass fuel; not an Anderson/Scott-Burgan parameter set."
+    },
+    "DEMO_SHRUB": {
+      "base_ros_m_min": 2.0,
+      "reference_moisture": 0.18,
+      "wind_coefficient": 0.06,
+      "slope_coefficient": 0.04,
+      "description": "Demo shrub fuel; not an Anderson/Scott-Burgan parameter set."
+    },
+    "DEMO_FOREST": {
+      "base_ros_m_min": 0.8,
+      "reference_moisture": 0.20,
+      "wind_coefficient": 0.04,
+      "slope_coefficient": 0.03,
+      "description": "Demo forest fuel; not an Anderson/Scott-Burgan parameter set."
+    }
+  }
+}

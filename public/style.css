@@ -1,0 +1,168 @@
+:root {
+    --kl-bg: #070a12;
+    --kl-surface: #0f172a;
+    --kl-surface-2: #111827;
+    --kl-panel: rgba(15, 23, 42, 0.92);
+    --kl-panel-strong: rgba(17, 24, 39, 0.96);
+    --kl-border: rgba(148, 163, 184, 0.22);
+    --kl-border-strong: rgba(148, 163, 184, 0.34);
+    --kl-text: #e5edf4;
+    --kl-muted: #94a3b8;
+    --kl-primary: #4edea3;
+    --kl-secondary: #65c7ff;
+    --kl-warning: #f6bd43;
+    --kl-danger: #fb7185;
+    --kl-radius: 8px;
+    --kl-shadow: 0 18px 50px rgba(0, 0, 0, 0.42);
+    --kl-font: "Noto Sans Thai", "Noto Sans Lao", "Inter", sans-serif;
+}
+
+html,
+body {
+    background: var(--kl-bg);
+    color: var(--kl-text);
+    font-family: var(--kl-font);
+    letter-spacing: 0;
+}
+
+body,
+.font-sans,
+.font-mono,
+button,
+input,
+select,
+textarea {
+    font-family: var(--kl-font) !important;
+}
+
+header:not(.top-nav) {
+    background: rgba(2, 6, 23, 0.96) !important;
+    border-bottom: 1px solid var(--kl-border) !important;
+}
+
+nav a,
+nav button,
+header a,
+header button {
+    border-radius: var(--kl-radius) !important;
+}
+
+.language-select {
+    min-width: 86px;
+    border-radius: var(--kl-radius);
+    border: 1px solid var(--kl-border-strong);
+    background: rgba(15, 23, 42, 0.94);
+    color: var(--kl-text);
+    padding: 0.38rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.language-select option {
+    background: var(--kl-surface);
+    color: var(--kl-text);
+}
+
+.kl-brand-logo {
+    color: #ffffff;
+    font-family: var(--kl-font);
+    font-size: 1rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0 !important;
+    text-shadow: 0 0 14px rgba(16, 185, 129, 0.18);
+    white-space: nowrap;
+}
+
+.kl-brand-subtitle {
+    color: var(--kl-primary);
+    font-family: var(--kl-font);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: 0 !important;
+    white-space: nowrap;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+    letter-spacing: 0 !important;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--kl-secondary);
+    outline-offset: 2px;
+}
+
+.glass-panel {
+    background: var(--kl-panel) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--kl-border) !important;
+    border-radius: var(--kl-radius) !important;
+    box-shadow: var(--kl-shadow);
+}
+
+.rounded-2xl,
+.rounded-xl {
+    border-radius: var(--kl-radius) !important;
+}
+
+.team-badge-overlay {
+    background: rgba(15, 23, 42, 0.94) !important;
+    border: 1px solid var(--kl-secondary) !important;
+    border-radius: var(--kl-radius) !important;
+    font-family: var(--kl-font) !important;
+}
+
+#laosMap,
+#gisMap {
+    width: 100%;
+    height: 100%;
+    background-color: #080c16 !important;
+}
+
+.led-text {
+    font-family: var(--kl-font) !important;
+    text-shadow: 0 0 10px rgba(245, 158, 11, 0.55);
+}
+
+@keyframes radar-pulse {
+    0% { transform: scale(0.9); opacity: 0.9; }
+    50% { transform: scale(1.8); opacity: 0.3; }
+    100% { transform: scale(2.4); opacity: 0; }
+}
+
+.radar-ring {
+    animation: radar-pulse 2s infinite ease-out;
+}
+
+.leaflet-interactive {
+    filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.42));
+}
+
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--kl-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}

@@ -1,0 +1,216 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://wildfire-analytics.internal/schemas/model-input-v0.2.json",
+    "title": "WildfireModelInput",
+    "description": "Standard JSON Schema contract between Backend Service and Wildfire Propagation Model.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "ignition",
+        "weather",
+        "terrain",
+        "fuel",
+        "grid",
+        "simulation"
+    ],
+    "properties": {
+        "ignition": {
+            "type": "object",
+            "description": "Center origin of fire ignition in projected meter coordinates.",
+            "additionalProperties": false,
+            "required": ["x_m", "y_m"],
+            "properties": {
+                "x_m": {
+                    "type": "number",
+                    "description": "Projected Cartesian coordinate X (Easting in metres)."
+                },
+                "y_m": {
+                    "type": "number",
+                    "description": "Projected Cartesian coordinate Y (Northing in metres)."
+                }
+            }
+        },
+        "weather": {
+            "type": "object",
+            "description": "Local meteorological parameters at ignition/spread time.",
+            "additionalProperties": false,
+            "required": [
+                "wind_speed_m_s",
+                "wind_direction_deg",
+                "temperature_c",
+                "relative_humidity"
+            ],
+            "properties": {
+                "wind_speed_m_s": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "description": "Wind speed measured at mid-flame height in m/s."
+                },
+                "wind_direction_deg": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "exclusiveMaximum": 360.0,
+                    "description": "Direction the wind comes FROM (0=North, 90=East, 180=South, 270=West)."
+                },
+                "temperature_c": {
+                    "type": "number",
+                    "minimum": -20.0,
+                    "maximum": 65.0,
+                    "description": "Ambient surface temperature in Celsius."
+                },
+                "relative_humidity": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "Relative humidity normalized as a fraction between 0.0 and 1.0."
+                },
+                "rainfall_mm_day": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "default": 0.0,
+                    "description": "Accumulated surface precipitation in mm per day."
+                }
+            }
+        },
+        "terrain": {
+            "type": "object",
+            "description": "Topographical parameters derived from Digital Elevation Models (e.g. NASADEM).",
+            "additionalProperties": false,
+            "required": ["elevation_m", "slope_deg", "aspect_deg"],
+            "properties": {
+                "elevation_m": {
+                    "type": "number",
+                    "description": "Elevation above sea level in metres."
+                },
+                "slope_deg": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 90.0,
+                    "description": "Terrain inclination angle in degrees."
+                },
+                "aspect_deg": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "exclusiveMaximum": 360.0,
+                    "description": "Azimuth compass direction that a slope faces (0=North, 90=East)."
+                }
+            }
+        },
+        "fuel": {
+            "type": "object",
+            "description": "Fuel parameters for the MVP spread baseline; optional fields prepare the contract for future Rothermel parameterization.",
+            "additionalProperties": false,
+            "required": [
+                "fuel_model",
+                "fuel_moisture_fraction"
+            ],
+            "properties": {
+                "fuel_model": {
+                    "type": ["string", "null"],
+                    "minLength": 1,
+                    "description": "Standardized Fuel Model Identifier (e.g., 'DEMO', 'TL1', 'GS1'), or null for non-burnable cells."
+                },
+                "fuel_load_kg_m2": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "description": "Total combustible dry fuel loading in kg/m²."
+                },
+                "fuel_bed_depth_m": {
+                    "type": "number",
+                    "exclusiveMinimum": 0.0,
+                    "description": "Depth/height of fuel bed in metres."
+                },
+                "fuel_moisture_fraction": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "Fuel moisture content represented as fraction (0.01 - 1.0)."
+                },
+                "heat_content_kj_kg": {
+                    "type": "number",
+                    "exclusiveMinimum": 0.0,
+                    "description": "Low heat of combustion in kJ/kg."
+                }
+            }
+        },
+        "land_cover": {
+            "type": "object",
+            "description": "Satellite-based classification metadata.",
+            "additionalProperties": false,
+            "required": ["class"],
+            "properties": {
+                "class": {
+                    "type": "string",
+                    "enum": [
+                        "water",
+                        "trees",
+                        "grass",
+                        "flooded_vegetation",
+                        "crops",
+                        "shrub_and_scrub",
+                        "built",
+                        "bare",
+                        "snow_and_ice"
+                    ],
+                    "description": "Dynamic World land cover classification label."
+                },
+                "tree_cover_fraction": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "Fractional tree canopy density from Hansen/GFW."
+                }
+            }
+        },
+        "grid": {
+            "type": "object",
+            "description": "Spatial discretization settings for MVP arrival-time grid output.",
+            "additionalProperties": false,
+            "required": ["cell_size_m"],
+            "properties": {
+                "cell_size_m": {
+                    "type": "number",
+                    "exclusiveMinimum": 0.0,
+                    "description": "Grid cell side length in metres."
+                },
+                "max_cells": {
+                    "type": "integer",
+                    "minimum": 3,
+                    "default": 101,
+                    "description": "Maximum grid width/height used for MVP arrival-time output."
+                }
+            }
+        },
+        "simulation": {
+            "type": "object",
+            "description": "Simulation timeline controls.",
+            "additionalProperties": false,
+            "required": [
+                "duration_minutes",
+                "output_intervals_minutes"
+            ],
+            "properties": {
+                "duration_minutes": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Total horizon period for simulation."
+                },
+                "output_intervals_minutes": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "description": "Timestamps (in minutes) to extract spread perimeters."
+                }
+            }
+        },
+        "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Tracing parameters (Request ID, source tracking, timestamps)."
+        }
+    }
+}

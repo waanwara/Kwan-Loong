@@ -1,0 +1,17 @@
+services:
+  kwanlong-app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      SQLITE_DB_PATH: /app/data/kwanlong.sqlite
+      SESSION_SECRET: ${SESSION_SECRET:-change-this-secret-before-production}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+    volumes:
+      - kwanlong-sqlite:/app/data
+    restart: unless-stopped
+
+volumes:
+  kwanlong-sqlite:

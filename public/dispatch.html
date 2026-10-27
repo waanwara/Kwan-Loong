@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Kwan-Loong - Tactical Dispatch & Unit Tracking</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Lao:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/i18next@23.16.8/dist/umd/i18next.min.js" defer></script>
+    <script src="js/i18n.js" defer></script>
+    <script src="js/api-client.js" defer></script>
+    <script src="js/mock-data.js" defer></script>
+    <script src="js/header-actions.js" defer></script>
+    <script src="js/dispatch-rothermel.js" defer></script>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4edea3",
+                        "primary-container": "#10b981",
+                        "on-primary": "#003824",
+                        "secondary": "#4cd7f6",
+                        "tertiary": "#ffb95f",
+                        "background": "#0e1511",
+                        "surface": "#0e1511",
+                        "surface-container": "#1a211d",
+                        "surface-container-high": "#242c27",
+                        "surface-container-highest": "#2f3632",
+                        "outline": "#86948a",
+                        "outline-variant": "#3c4a42",
+                        "amber-led": "#f59e0b",
+                        "danger-fire": "#ef4444"
+                    },
+                    fontFamily: {
+                        "sans": ["Noto Sans Thai", "Noto Sans Lao", "Inter", "sans-serif"],
+                        "mono": ["Noto Sans Thai", "Noto Sans Lao", "Inter", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0F172A;
+            font-family: 'Noto Sans Thai', 'Noto Sans Lao', 'Inter', sans-serif;
+            color: #dde4dd;
+        }
+
+        .ops-page .font-mono {
+            font-family: 'Noto Sans Thai', 'Noto Sans Lao', 'Inter', sans-serif !important;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid #334155;
+        }
+
+        #gisMap {
+            width: 100%;
+            height: 100%;
+            background-color: #080c16;
+            z-index: 1;
+        }
+
+        .led-text {
+            font-family: 'Noto Sans Thai', 'Noto Sans Lao', 'Inter', sans-serif;
+            text-shadow: 0 0 12px rgba(245, 158, 11, 0.7);
+        }
+
+        @keyframes radar-pulse {
+            0% { transform: scale(0.8); opacity: 1; }
+            50% { transform: scale(1.8); opacity: 0.4; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+
+        .radar-ring {
+            animation: radar-pulse 2s infinite ease-out;
+        }
+
+        .team-badge-overlay {
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid #4cd7f6;
+            box-shadow: 0 0 15px rgba(76, 215, 246, 0.3);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: white;
+            font-family: 'Noto Sans Thai', 'Noto Sans Lao', 'Inter', sans-serif;
+            white-space: nowrap;
+        }
+
+        .ops-page.map-only aside {
+            display: none;
+        }
+
+        .ops-page.map-only .map-bottom-control {
+            left: 32px;
+            right: 520px;
+            transform: none;
+            max-width: none;
+        }
+
+        .heat-dot {
+            width: 18px;
+            height: 8px;
+            border-radius: 999px;
+            display: inline-block;
+        }
+
+        .heat-plume {
+            border-radius: 999px;
+            mix-blend-mode: screen;
+            pointer-events: auto;
+            filter: blur(0.4px);
+        }
+
+        .leaflet-heat-gradient {
+            opacity: 0.92;
+        }
+
+        #gisMap.heat-theme .leaflet-tile-pane img {
+            filter: saturate(1.24) contrast(1.08) brightness(0.72);
+        }
+
+        .wind-arrow {
+            transform-origin: center;
+        }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #0e1511; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+        .right-panel-stack {
+            max-height: calc(100% - 32px);
+        }
+
+        .map-bottom-control {
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: min(620px, calc(100% - 640px));
+        }
+
+        @media (max-width: 1280px) {
+            .right-panel-stack {
+                width: 320px;
+                max-height: calc(100% - 96px);
+                overflow-y: auto;
+            }
+
+            .map-bottom-control {
+                left: 24px;
+                right: 360px;
+                transform: none;
+                max-width: none;
+                min-width: 0;
+            }
+        }
+
+        @media (max-width: 980px) {
+            .right-panel-stack {
+                left: 16px;
+                right: 16px;
+                top: auto;
+                bottom: 84px;
+                width: auto;
+                max-height: 42%;
+            }
+
+            .map-bottom-control {
+                left: 16px;
+                right: 16px;
+                bottom: 16px;
+            }
+        }
+    </style>
+</head>
+<body class="ops-page map-only w-screen h-screen flex flex-col overflow-hidden font-sans">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="fixed top-0 w-full z-50 flex items-center justify-between px-5 h-14 bg-slate-950/95 border-b border-white/10 shadow-lg">
+        <div class="flex items-center gap-4 min-w-0">
+            <a href="dashboard.html#command" class="flex items-baseline gap-2 min-w-0">
+                <h1 class="kl-brand-logo">Kwan-Loong</h1>
+                <span class="kl-brand-subtitle hidden sm:inline" data-i18n="commandHub">Command Hub</span>
+            </a>
+
+            <div class="hidden md:flex items-center bg-slate-900/90 border border-slate-700/80 p-0.5 rounded-lg text-xs font-mono">
+                <a href="dashboard.html#strategic" class="px-3 py-1 rounded text-slate-400 hover:text-white transition" data-i18n="navStrategic">Strategic</a>
+                <a href="dashboard.html#command" class="px-3 py-1 rounded text-slate-400 hover:text-white transition" data-i18n="navCommand">Command</a>
+                <a href="dispatch.html" class="px-3 py-1 rounded bg-slate-800 text-primary font-bold border-b-2 border-primary" data-i18n="navDispatch">Dispatch</a>
+                <a href="dashboard.html#aar" class="px-3 py-1 rounded text-slate-400 hover:text-white transition" data-i18n="navAar">AAR</a>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 font-mono">
+            <select id="languageSelect" data-language-select class="language-select">
+                <option value="th">ไทย (TH)</option>
+                <option value="en">English (EN)</option>
+                <option value="lo">ลาว (LO)</option>
+            </select>
+            <button onclick="sendTargetToRadio()" class="bg-slate-800 hover:bg-slate-700 text-secondary border border-secondary/40 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow">
+                <span class="material-symbols-outlined text-sm">cell_tower</span>
+                <span class="hidden sm:inline" data-i18n="sendCoords">ส่งพิกัดวิทยุ</span>
+            </button>
+
+            <button onclick="toggleModal(true)" class="bg-primary-container hover:bg-emerald-400 text-on-primary-container px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                <span class="material-symbols-outlined text-sm">rocket_launch</span>
+                <span data-i18n="deployUnits">Deploy Units</span>
+            </button>
+
+            <div class="flex items-center gap-1 text-slate-400 border-l border-outline-variant pl-3 ml-1">
+                <div class="relative">
+                    <button data-header-toggle="headerNotificationsMenu" class="p-1.5 hover:text-primary transition" title="Notifications"><span class="material-symbols-outlined text-xl">notifications</span></button>
+                    <div id="headerNotificationsMenu" data-header-menu class="hidden absolute right-0 top-10 w-72 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl p-3 text-xs z-[2000]">
+                        <div class="font-mono text-slate-200 font-bold mb-2">Notifications</div>
+                        <div class="space-y-2">
+                            <div class="rounded border border-emerald-500/30 bg-emerald-500/10 p-2 text-emerald-300">FIRMS hotspots load on this map when available.</div>
+                            <div class="rounded border border-amber-500/30 bg-amber-500/10 p-2 text-amber-300">Weather and terrain are still using MVP defaults.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative">
+                    <button data-header-toggle="headerSettingsMenu" class="p-1.5 hover:text-primary transition" title="Settings"><span class="material-symbols-outlined text-xl">settings</span></button>
+                    <div id="headerSettingsMenu" data-header-menu class="hidden absolute right-0 top-10 w-72 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl p-3 text-xs z-[2000]">
+                        <div class="font-mono text-slate-200 font-bold mb-2">Settings</div>
+                        <label class="flex items-center justify-between gap-3 py-2 border-b border-slate-800">
+                            <span class="text-slate-300">Live FIRMS layer</span>
+                            <input type="checkbox" checked class="accent-emerald-400">
+                        </label>
+                        <label class="flex items-center justify-between gap-3 py-2">
+                            <span class="text-slate-300">Show arrival cells</span>
+                            <input type="checkbox" checked class="accent-emerald-400">
+                        </label>
+                    </div>
+                </div>
+                <div class="relative">
+                    <button data-header-toggle="headerProfileMenu" class="w-8 h-8 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-xs font-mono text-slate-100" title="Profile">IC</button>
+                    <div id="headerProfileMenu" data-header-menu class="hidden absolute right-0 top-10 w-72 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl p-3 text-xs z-[2000]">
+                        <div id="headerProfileName" class="font-mono text-slate-100 font-bold">Incident Commander</div>
+                        <div id="headerProfileEmail" class="text-slate-400 mt-0.5">Loading...</div>
+                        <div class="border-t border-slate-800 mt-3 pt-3 flex gap-2">
+                            <a href="dashboard.html#command" class="flex-1 text-center rounded bg-slate-800 border border-slate-700 py-2 text-slate-200 hover:bg-slate-700">Command</a>
+                            <button data-header-logout class="flex-1 rounded bg-red-500/10 border border-red-500/40 py-2 text-red-300 hover:bg-red-500/20">Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN WORKSPACE -->
+    <div class="flex flex-1 mt-14 h-[calc(100vh-56px)] w-full relative">
+
+        <aside class="w-80 bg-surface-container-high border-r border-outline-variant z-40 flex flex-col p-4 shrink-0 overflow-y-auto space-y-5">
+            <div class="pb-3 border-b border-outline-variant">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full border border-primary bg-slate-900 flex items-center justify-center text-primary font-mono font-bold">HQ</div>
+                    <div>
+                        <h2 class="text-sm font-bold text-primary font-mono uppercase tracking-wider" data-i18n="tacticalHub">Tactical Command Hub</h2>
+                        <p class="text-xs text-slate-400" data-i18n="tacticalSubtitle">ควบคุมสถานการณ์ & ติดตามเรียลไทม์</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="space-y-1.5 font-mono text-xs">
+                <a href="dashboard.html#command" class="flex items-center gap-3 p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+                    <span class="material-symbols-outlined text-base">layers</span>
+                    <span>Map Layers (ชั้นข้อมูล)</span>
+                </a>
+                <a href="dispatch.html" class="flex items-center gap-3 p-2.5 rounded-lg bg-primary/10 text-primary border-l-2 border-primary font-bold">
+                    <span class="material-symbols-outlined text-base">my_location</span>
+                    <span>Tactical Units (ติดตามพิกัด)</span>
+                </a>
+                <a href="dashboard.html#strategic" class="flex items-center gap-3 p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+                    <span class="material-symbols-outlined text-base">thermostat</span>
+                    <span>Environmental Data</span>
+                </a>
+                <a href="aar-dashboard.html" class="flex items-center gap-3 p-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+                    <span class="material-symbols-outlined text-base">analytics</span>
+                    <span>ROI Metrics & AAR</span>
+                </a>
+            </nav>
+
+            <div class="bg-surface-container rounded-xl p-3 border border-outline-variant space-y-3 font-mono">
+                <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+                    <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+                        สถานะเจ้าหน้าที่ (3 ทีม)
+                    </span>
+                    <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full">ACTIVE</span>
+                </div>
+
+                <div class="space-y-2 text-xs">
+                    <div class="bg-slate-900/80 p-2 rounded border border-slate-800 flex justify-between items-center">
+                        <div>
+                            <div class="text-white font-bold flex items-center gap-1">
+                                <span class="text-primary">●</span> Team Alpha (ดับไฟ)
+                            </div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">O2: 92% | HR: 88 bpm</div>
+                        </div>
+                        <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/30">ปลอดภัย</span>
+                    </div>
+
+                    <div class="bg-slate-900/80 p-2 rounded border border-slate-800 flex justify-between items-center">
+                        <div>
+                            <div class="text-white font-bold flex items-center gap-1">
+                                <span class="text-secondary">●</span> Team Bravo (ทำแนวกันไฟ)
+                            </div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">O2: 85% | HR: 104 bpm</div>
+                        </div>
+                        <span class="text-[10px] bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/30">เฝ้าระวัง</span>
+                    </div>
+
+                    <div class="bg-slate-900/80 p-2 rounded border border-slate-800 flex justify-between items-center">
+                        <div>
+                            <div class="text-white font-bold flex items-center gap-1">
+                                <span class="text-tertiary">●</span> Air-1 Helicopter
+                            </div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Fuel: 68% | Alt: 1,200ft</div>
+                        </div>
+                        <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/30">พร้อมโปรยน้ำ</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-auto pt-3 border-t border-outline-variant space-y-2">
+                <button onclick="toggleModal(true)" class="w-full bg-primary text-on-primary font-mono font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider hover:brightness-110 transition shadow-[0_0_15px_rgba(78,222,163,0.3)]">
+                    ⚡ Rapid Response (สั่งการด่วน)
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 relative h-full overflow-hidden bg-[#0F172A]">
+            <div id="gisMap" class="heat-theme"></div>
+
+            <div class="absolute top-4 left-4 z-[1000] flex gap-2">
+                <div class="glass-panel p-1 rounded-xl flex gap-1 border border-slate-700 shadow-2xl">
+                    <button id="btnSat" onclick="switchMapStyle('satellite')" class="px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition bg-primary text-slate-950 shadow">
+                        🛰️ Satellite
+                    </button>
+                    <button id="btnDark" onclick="switchMapStyle('dark')" class="px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition text-slate-300 hover:text-white">
+                        🌃 Tactical Dark
+                    </button>
+                </div>
+            </div>
+
+            <div class="right-panel-stack absolute top-4 right-4 z-[1000] w-[440px] flex flex-col gap-3 overflow-y-auto pr-1">
+                <div class="glass-panel p-4 rounded-xl border border-slate-700 shadow-2xl">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-bold text-slate-300 uppercase" data-i18n="telemetry">Telemetry</h3>
+                        <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                    </div>
+                    <table class="w-full text-left text-sm">
+                        <tbody class="divide-y divide-slate-800">
+                            <tr class="h-8"><td class="text-slate-400" data-i18n="windVector">Wind Vector</td><td id="telemetryWindValue" class="text-secondary font-bold text-right">Loading</td></tr>
+                            <tr class="h-8"><td class="text-slate-400" data-i18n="spreadSpeed">Fire Spread Speed</td><td id="telemetrySpreadValue" class="text-red-400 font-bold text-right">Pending</td></tr>
+                            <tr class="h-8"><td class="text-slate-400" data-i18n="terrainSlope">Terrain Slope</td><td class="text-tertiary font-bold text-right">12% AVG</td></tr>
+                            <tr class="h-8"><td class="text-slate-400" data-i18n="boundaryLayer">Admin Boundaries</td><td id="boundaryStatus" class="text-primary font-bold text-right">Loading</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="glass-panel p-4 rounded-xl border border-orange-500/30 shadow-2xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs font-bold text-orange-300 uppercase" data-i18n="heatLayers">Heat & Wind Layers</h3>
+                        <span class="material-symbols-outlined text-orange-300 text-lg">local_fire_department</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 text-[11px] text-slate-300">
+                        <div><span class="heat-dot bg-emerald-400"></span><div data-i18n="heatLow">Low</div></div>
+                        <div><span class="heat-dot bg-yellow-400"></span><div data-i18n="heatMed">Medium</div></div>
+                        <div><span class="heat-dot bg-orange-500"></span><div data-i18n="heatHigh">High</div></div>
+                        <div><span class="heat-dot bg-red-500"></span><div data-i18n="heatExtreme">Extreme</div></div>
+                    </div>
+                    <p id="heatLayerStatus" class="mt-3 text-xs text-slate-400">Waiting for FIRMS or model output</p>
+                </div>
+
+                <div class="glass-panel p-4 rounded-xl border border-emerald-500/30 shadow-2xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h3 class="text-xs font-bold text-emerald-400 uppercase" data-i18n="modelInputs">Rothermel Inputs</h3>
+                            <p id="rothermelStatus" class="text-[10px] text-slate-400 mt-0.5">Waiting for backend</p>
+                        </div>
+                        <span class="material-symbols-outlined text-primary text-lg">local_fire_department</span>
+                    </div>
+
+                <form id="rothermelForm" class="space-y-2 text-[11px]">
+                    <label class="block">
+                        <span class="text-slate-400" data-i18n="fuelModel">Fuel model</span>
+                        <select id="fuelModelSelect" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-100 focus:border-primary focus:ring-primary">
+                            <option value="SH2">SH2 - Moderate shrub</option>
+                        </select>
+                    </label>
+
+                    <div class="grid grid-cols-4 gap-2">
+                        <label class="block">
+                            <span class="text-slate-400" data-i18n="wind">Wind</span>
+                            <input id="windSpeedInput" type="number" min="0" max="150" step="0.1" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-100 focus:border-primary focus:ring-primary"/>
+                        </label>
+                        <label class="block">
+                            <span class="text-slate-400" data-i18n="direction">Dir</span>
+                            <input id="windDirectionInput" type="number" min="0" max="359.9" step="0.1" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-100 focus:border-primary focus:ring-primary"/>
+                        </label>
+                        <label class="block">
+                            <span class="text-slate-400" data-i18n="slope">Slope</span>
+                            <input id="slopeInput" type="number" min="0" max="100" step="0.1" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-100 focus:border-primary focus:ring-primary"/>
+                        </label>
+                        <label class="block">
+                            <span class="text-slate-400" data-i18n="moisture">Moisture</span>
+                            <input id="fuelMoistureInput" type="number" min="1" max="60" step="0.1" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-100 focus:border-primary focus:ring-primary"/>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="block">
+                            <span class="text-slate-400">Lat</span>
+                            <input id="originLatInput" type="number" min="-90" max="90" step="0.0001" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-100 focus:border-primary focus:ring-primary"/>
+                        </label>
+                        <label class="block">
+                            <span class="text-slate-400">Lng</span>
+                            <input id="originLngInput" type="number" min="-180" max="180" step="0.0001" class="mt-1 w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-100 focus:border-primary focus:ring-primary"/>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="w-full bg-primary text-slate-950 font-bold rounded px-3 py-2 hover:brightness-110 transition" data-i18n="estimateSpread">Estimate Spread</button>
+                </form>
+
+                <div class="grid grid-cols-3 gap-2 mt-3 text-center">
+                    <div class="bg-slate-950/80 border border-slate-800 rounded p-2">
+                        <div class="text-[9px] text-slate-500 uppercase">ROS</div>
+                        <div id="spreadRateValue" class="text-primary font-bold">--</div>
+                    </div>
+                    <div class="bg-slate-950/80 border border-slate-800 rounded p-2">
+                        <div class="text-[9px] text-slate-500 uppercase">Flame</div>
+                        <div id="flameLengthValue" class="text-amber-400 font-bold">--</div>
+                    </div>
+                    <div class="bg-slate-950/80 border border-slate-800 rounded p-2">
+                        <div class="text-[9px] text-slate-500 uppercase">Risk</div>
+                        <div id="riskIndexValue" class="text-red-400 font-bold">--</div>
+                    </div>
+                </div>
+
+                <div class="mt-3 space-y-1 border-t border-slate-800 pt-2 text-[9px] text-slate-400">
+                    <div id="hotspotFreshness">Hotspot source pending</div>
+                    <div id="weatherFreshness">Weather source pending</div>
+                    <div id="terrainFreshness">Terrain source pending</div>
+                </div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-xl border border-sky-500/30 shadow-2xl">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h3 class="text-xs font-bold text-sky-300 uppercase" data-i18n="firebreakTitle">Firebreak Setup</h3>
+                            <p id="firebreakStatus" class="text-[10px] text-slate-400 mt-0.5">No firebreak saved yet</p>
+                        </div>
+                        <span class="material-symbols-outlined text-sky-300 text-lg">timeline</span>
+                    </div>
+                    <form id="firebreakForm" class="space-y-2 text-xs">
+                        <input id="firebreakNameInput" class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-2 text-slate-100" value="Vientiane containment line"/>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input id="firebreakStartLatInput" type="number" step="0.0001" class="bg-slate-950 border border-slate-700 rounded px-2 py-2 text-slate-100" placeholder="Start lat"/>
+                            <input id="firebreakStartLngInput" type="number" step="0.0001" class="bg-slate-950 border border-slate-700 rounded px-2 py-2 text-slate-100" placeholder="Start lng"/>
+                            <input id="firebreakEndLatInput" type="number" step="0.0001" class="bg-slate-950 border border-slate-700 rounded px-2 py-2 text-slate-100" placeholder="End lat"/>
+                            <input id="firebreakEndLngInput" type="number" step="0.0001" class="bg-slate-950 border border-slate-700 rounded px-2 py-2 text-slate-100" placeholder="End lng"/>
+                        </div>
+                        <button type="submit" class="w-full bg-sky-400 text-slate-950 font-bold rounded px-3 py-2 hover:brightness-110 transition" data-i18n="saveFirebreak">Save Firebreak</button>
+                    </form>
+                </div>
+
+                <div class="glass-panel border border-amber-500/40 p-4 rounded-2xl shadow-[0_0_30px_rgba(245,158,11,0.2)]">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">timer</span> SAFETY LEAD TIME
+                        </span>
+                        <span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-mono">T-MINUS</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 font-mono mb-2">นับถอยหลังระยะปลอดภัยก่อนแนวไฟประชิดทีม</p>
+                    <div id="safetyCountdown" class="led-text text-amber-led text-3xl font-bold tracking-wider text-center py-1 bg-slate-950/80 rounded-lg border border-amber-500/30">
+                        00:42:15
+                    </div>
+                    <div class="w-full bg-slate-900 h-1.5 rounded-full mt-2 overflow-hidden border border-slate-800">
+                        <div id="safetyBar" class="bg-amber-led h-full transition-all duration-1000" style="width: 65%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="map-bottom-control absolute bottom-6 z-[1000] glass-panel px-5 py-2.5 rounded-xl flex items-center gap-4 min-w-[380px] border border-slate-700 shadow-2xl">
+                <div class="flex flex-col shrink-0">
+                    <span class="text-slate-300 font-mono text-xs font-bold flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm text-red-400">local_fire_department</span> <span data-i18n="spreadTimeline">Fire arrival forecast</span>
+                    </span>
+                    <span class="text-[10px] text-slate-400 font-mono" data-i18n="spreadTimelineSub">Simulated fire spread</span>
+                </div>
+                <input id="spreadSlider" class="flex-1 accent-primary h-2 bg-slate-800 rounded-lg cursor-pointer" max="4" min="0" step="1" value="1"/>
+                <span id="spreadTimeLabel" class="text-primary font-mono text-xs font-bold shrink-0 min-w-[65px] text-right bg-slate-900 px-2 py-1 rounded border border-slate-800">
+                    +1 hr
+                </span>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL DISPATCH -->
+    <div id="deploymentModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[3000] hidden flex items-center justify-center p-4">
+        <div class="glass-panel p-8 rounded-2xl shadow-2xl flex flex-col items-center gap-6 max-w-lg w-full border border-emerald-500/40 relative">
+            <button onclick="toggleModal(false)" class="absolute top-4 right-4 text-slate-400 hover:text-white"><span class="material-symbols-outlined">close</span></button>
+            <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center border border-primary shadow-[0_0_20px_rgba(78,222,163,0.3)]">
+                <span class="material-symbols-outlined text-primary text-4xl">rocket_launch</span>
+            </div>
+            <div class="text-center space-y-1">
+                <h2 class="text-2xl font-mono font-bold text-white tracking-wide">Deployment Status</h2>
+                <p class="text-xs font-mono text-slate-400">System synchronization complete. Awaiting final command.</p>
+            </div>
+            <div class="bg-emerald-500/10 border border-emerald-500 px-6 py-2.5 rounded-full flex items-center gap-3 shadow-inner">
+                <div class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></div>
+                <span class="text-emerald-400 font-mono text-xs font-bold tracking-widest uppercase">● PLAN ACTIVATED — AWAIT DISPATCH</span>
+            </div>
+            <div class="flex gap-4 w-full font-mono text-xs font-bold">
+                <button onclick="toggleModal(false)" class="flex-1 bg-slate-800 border border-slate-700 text-slate-300 py-3 rounded-xl hover:bg-slate-700 transition uppercase tracking-wider">ABORT</button>
+                <button onclick="executeDispatch()" class="flex-1 bg-primary text-slate-950 py-3 rounded-xl hover:brightness-110 transition shadow-[0_0_20px_rgba(78,222,163,0.5)] uppercase tracking-wider">EXECUTE DISPATCH</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        let map, satelliteLayer, darkLayer, spreadPolygons = [], modelSpreadLayer, firmsHotspotLayer, boundaryLayer, firebreakLayer, windLayer;
+        const centerLat = 17.9757, centerLng = 102.6331;
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await window.KwanLongI18n.init();
+            map = L.map('gisMap', { zoomControl: false, attributionControl: false }).setView([centerLat, centerLng], 12);
+            satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 17 });
+            darkLayer = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{y}/{x}.png', { maxZoom: 17 });
+            satelliteLayer.addTo(map);
+            setTimeout(() => { map.invalidateSize(); }, 300);
+            initTacticalOverlays();
+            window.KwanLongI18n.initLanguageToggle();
+            setStatusText('heatLayerStatus', 'waitingHeat');
+            setStatusText('rothermelStatus', 'waitingBackend');
+            setStatusText('firebreakStatus', 'noFirebreak');
+            setStatusText('boundaryStatus', 'boundaryLoading');
+            initSpreadSlider();
+            initFirebreakForm();
+            startSafetyTimer();
+            loadAdminBoundaries();
+            loadFirebreaks();
+            window.addEventListener('kwanlong:spread-model', (event) => {
+                renderModelSpread(event.detail);
+            });
+            window.addEventListener('kwanlong:firms-hotspots', (event) => {
+                renderFirmsHotspots(event.detail);
+            });
+        });
+
+        function initTacticalOverlays() {
+            const chokepointIcon = L.divIcon({
+                className: 'custom-chokepoint',
+                html: `<div class="relative flex items-center justify-center"><div class="w-10 h-10 rounded-full bg-red-500/40 radar-ring absolute"></div><div class="w-4 h-4 rounded-full bg-red-500 border-2 border-white relative z-10 shadow-[0_0_15px_#ef4444]"></div></div>`,
+                iconSize: [30, 30], iconAnchor: [15, 15]
+            });
+            L.marker([centerLat + 0.02, centerLng + 0.03], { icon: chokepointIcon }).addTo(map);
+
+            const activeFireBoundary = L.polygon([
+                [centerLat + 0.010, centerLng + 0.015],
+                [centerLat + 0.025, centerLng + 0.035],
+                [centerLat + 0.018, centerLng + 0.045],
+                [centerLat + 0.002, centerLng + 0.030]
+            ], { color: '#ef4444', fillColor: '#ef4444', fillOpacity: 0.55, weight: 2, dashArray: '4, 4' }).addTo(map);
+
+            const spread1 = L.polygon([
+                [centerLat + 0.008, centerLng + 0.010],
+                [centerLat + 0.030, centerLng + 0.038],
+                [centerLat + 0.022, centerLng + 0.052],
+                [centerLat - 0.002, centerLng + 0.032]
+            ], { color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.25, weight: 1.5, dashArray: '6, 6' }).addTo(map);
+
+            spreadPolygons = [activeFireBoundary, spread1];
+
+            const teamAlphaIcon = L.divIcon({
+                className: 'custom-team-badge',
+                html: `<div class="team-badge-overlay"><div class="font-bold text-primary text-xs">TEAM ALPHA</div><div class="text-[9px] text-slate-300">Status: <span class="text-emerald-400 font-bold">Suppressing</span></div></div>`,
+                iconSize: [100, 40], iconAnchor: [-10, 20]
+            });
+            L.marker([centerLat + 0.005, centerLng + 0.008], { icon: teamAlphaIcon }).addTo(map);
+        }
+
+        function switchMapStyle(style) {
+            const btnSat = document.getElementById('btnSat');
+            const btnDark = document.getElementById('btnDark');
+
+            if (style === 'satellite') {
+                if (map.hasLayer(darkLayer)) map.removeLayer(darkLayer);
+                satelliteLayer.addTo(map);
+                if (btnSat) btnSat.className = "px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition bg-primary text-slate-950 shadow";
+                if (btnDark) btnDark.className = "px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition text-slate-300 hover:text-white";
+            } else {
+                if (map.hasLayer(satelliteLayer)) map.removeLayer(satelliteLayer);
+                darkLayer.addTo(map);
+                if (btnDark) btnDark.className = "px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition bg-primary text-slate-950 shadow";
+                if (btnSat) btnSat.className = "px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition text-slate-300 hover:text-white";
+            }
+        }
+
+        function toggleModal(show) {
+            const modal = document.getElementById('deploymentModal');
+            if (modal) {
+                if (show) modal.classList.remove('hidden');
+                else modal.classList.add('hidden');
+            }
+        }
+
+        function executeDispatch() {
+            toggleModal(false);
+            alert(t('alerts.dispatchOk'));
+        }
+
+        function sendTargetToRadio() {
+            alert(t('alerts.radioOk'));
+        }
+
+        function updateSpreadTimeLabel(value) {
+            const label = document.getElementById('spreadTimeLabel');
+            if (label) label.innerText = `+${value} ${t('units.hourShort')}`;
+        }
+
+        function initSpreadSlider() {
+            const slider = document.getElementById('spreadSlider');
+            if (slider) {
+                updateSpreadTimeLabel(slider.value);
+                slider.addEventListener('input', (e) => {
+                    updateSpreadTimeLabel(e.target.value);
+                });
+            }
+        }
+
+        function perimeterStyle(feature) {
+            const minutes = feature?.properties?.minutes;
+            const colorByMinutes = {
+                30: '#facc15',
+                60: '#f97316',
+                120: '#ef4444'
+            };
+            return {
+                color: colorByMinutes[minutes] || '#ef4444',
+                fillColor: colorByMinutes[minutes] || '#ef4444',
+                fillOpacity: 0.26,
+                weight: 2,
+                dashArray: '6, 6'
+            };
+        }
+
+        function heatColor(value) {
+            if (value >= 90) return '#7f1d1d';
+            if (value >= 75) return '#dc2626';
+            if (value >= 55) return '#f97316';
+            if (value >= 35) return '#facc15';
+            if (value >= 18) return '#a3e635';
+            return '#22c55e';
+        }
+
+        function heatGradient(value) {
+            const core = heatColor(value);
+            const middle = value >= 55 ? '#f97316' : '#facc15';
+            return `radial-gradient(circle, rgba(255,255,255,.86) 0%, ${core} 14%, ${middle} 42%, rgba(239,68,68,.28) 66%, rgba(239,68,68,0) 78%)`;
+        }
+
+        function makeHeatIcon(value, diameter) {
+            return L.divIcon({
+                className: 'leaflet-heat-gradient',
+                html: `<div class="heat-plume" style="width:${diameter}px;height:${diameter}px;background:${heatGradient(value)};box-shadow:0 0 ${Math.round(diameter / 3)}px ${heatColor(value)};"></div>`,
+                iconSize: [diameter, diameter],
+                iconAnchor: [diameter / 2, diameter / 2]
+            });
+        }
+
+        function hotspotHeatScore(hotspot) {
+            const frp = Number(hotspot.frp);
+            const brightness = Number(hotspot.brightness);
+            if (Number.isFinite(frp)) return Math.min(100, frp * 4);
+            if (Number.isFinite(brightness)) return Math.min(100, Math.max(0, brightness - 280));
+            return 35;
+        }
+
+        function renderModelSpread(result) {
+            if (!map || !result?.modelOutputGeoJson) return;
+
+            if (modelSpreadLayer) {
+                map.removeLayer(modelSpreadLayer);
+            }
+
+            const layers = [];
+            const perimeters = result.modelOutputGeoJson.perimeters;
+            if (perimeters?.features?.length) {
+                layers.push(L.geoJSON(perimeters, {
+                    style: perimeterStyle,
+                    onEachFeature: (feature, layer) => {
+                        layer.bindPopup(`Fire perimeter +${feature.properties.minutes} min`);
+                    }
+                }));
+            }
+
+            const arrivalCells = result.modelOutputGeoJson.arrivalCells;
+            if (arrivalCells?.features?.length) {
+                layers.push(L.geoJSON(arrivalCells, {
+                    pointToLayer: (feature, latlng) => {
+                        const score = 100 - Math.min(100, Number(feature.properties.arrival_min || 0));
+                        return L.marker(latlng, {
+                            icon: makeHeatIcon(score, Math.max(22, Math.min(46, 20 + score / 2.5)))
+                        });
+                    },
+                    onEachFeature: (feature, layer) => {
+                        layer.bindTooltip(`${feature.properties.arrival_min} min`, {
+                            direction: 'top',
+                            opacity: 0.8
+                        });
+                    }
+                }));
+            }
+
+            modelSpreadLayer = L.featureGroup(layers).addTo(map);
+            setStatusText('heatLayerStatus', 'modelHeatLayer', { count: result.estimate?.arrivalCellCount || 0 });
+            const bounds = modelSpreadLayer.getBounds?.();
+            if (bounds?.isValid()) {
+                map.fitBounds(bounds.pad(0.25), { maxZoom: 14 });
+            }
+        }
+
+        function setInputValue(id, value) {
+            const input = document.getElementById(id);
+            if (input) input.value = value;
+        }
+
+        function renderFirmsHotspots(result) {
+            if (!map || !result?.hotspots) return;
+
+            if (firmsHotspotLayer) {
+                map.removeLayer(firmsHotspotLayer);
+            }
+
+            const markers = result.hotspots.map((hotspot, index) => {
+                const buttonId = `use-hotspot-${index}`;
+                const score = hotspotHeatScore(hotspot);
+                const marker = L.marker([hotspot.latitude, hotspot.longitude], {
+                    icon: makeHeatIcon(score, Math.max(34, Math.min(88, 32 + score * 0.55)))
+                });
+
+                marker.bindPopup(`
+                    <div style="font-family: sans-serif; min-width: 160px;">
+                        <strong>FIRMS Hotspot</strong><br/>
+                        Source: ${result.source}<br/>
+                        Date: ${hotspot.acquisitionDate || '-'} ${hotspot.acquisitionTime || ''}<br/>
+                        Confidence: ${hotspot.confidence || '-'}<br/>
+                        FRP: ${hotspot.frp ?? '-'}<br/>
+                        <button id="${buttonId}" style="margin-top:6px;">Use hotspot</button>
+                    </div>
+                `);
+
+                marker.on('popupopen', () => {
+                    const button = document.getElementById(buttonId);
+                    if (button) {
+                        button.addEventListener('click', () => {
+                            setInputValue('originLatInput', hotspot.latitude);
+                            setInputValue('originLngInput', hotspot.longitude);
+                            window.KwanLongDispatchData?.loadEnvironmentForCurrentPoint?.();
+                        }, { once: true });
+                    }
+                });
+
+                return marker;
+            });
+
+            firmsHotspotLayer = L.featureGroup(markers).addTo(map);
+            setStatusText('heatLayerStatus', 'firmsHeatLayer', { source: result.source, count: result.count });
+            const bounds = firmsHotspotLayer.getBounds?.();
+            if (bounds?.isValid()) {
+                map.fitBounds(bounds.pad(0.3), { maxZoom: 11 });
+            }
+        }
+
+        async function loadAdminBoundaries() {
+            if (!window.KwanLongApi || !map) return;
+            try {
+                const response = await window.KwanLongApi.get('/api/data/boundaries/laos-admin?level=province');
+                if (boundaryLayer) map.removeLayer(boundaryLayer);
+                if (response.data.wms?.url && response.data.wms?.layers) {
+                    boundaryLayer = L.tileLayer.wms(response.data.wms.url, {
+                        layers: response.data.wms.layers,
+                        format: response.data.wms.format || 'image/png',
+                        transparent: response.data.wms.transparent !== false,
+                        opacity: 0.75,
+                        attribution: 'ODM / NGD'
+                    }).addTo(map);
+                } else {
+                    boundaryLayer = L.geoJSON(response.data.geojson, {
+                        style: {
+                            color: '#7dd3fc',
+                            weight: 1.2,
+                            opacity: 0.82,
+                            fillOpacity: 0.02,
+                            dashArray: '5, 4'
+                        },
+                        onEachFeature: (feature, layer) => {
+                            const props = feature.properties || {};
+                            const name = props.name || props.NAME_1 || props.ADM1_EN || props.province || 'Admin boundary';
+                            layer.bindTooltip(String(name), { sticky: true, opacity: 0.9 });
+                        }
+                    }).addTo(map);
+                }
+                setStatusText('boundaryStatus', 'boundaryReady');
+            } catch (error) {
+                setStatusText('boundaryStatus', 'boundaryUnavailable');
+            }
+        }
+
+        async function loadFirebreaks() {
+            if (!window.KwanLongApi || !map) return;
+            try {
+                const response = await window.KwanLongApi.get('/api/data/firebreaks');
+                renderFirebreaks(response.data);
+            } catch (error) {
+                const status = document.getElementById('firebreakStatus');
+                if (status) status.textContent = `Firebreaks unavailable: ${error.message}`;
+            }
+        }
+
+        function renderFirebreaks(geojson) {
+            if (firebreakLayer) map.removeLayer(firebreakLayer);
+            firebreakLayer = L.geoJSON(geojson, {
+                style: (feature) => ({
+                    color: feature.properties?.priority === 'high' ? '#38bdf8' : '#93c5fd',
+                    weight: 4,
+                    opacity: 0.95,
+                    dashArray: '10, 6'
+                }),
+                onEachFeature: (feature, layer) => {
+                    layer.bindPopup(`
+                        <strong>${feature.properties?.name || 'Firebreak'}</strong><br/>
+                        Status: ${feature.properties?.status || '-'}<br/>
+                        Length: ${feature.properties?.lengthKm ?? '-'} km
+                    `);
+                }
+            }).addTo(map);
+            setStatusText('firebreakStatus', 'firebreakSaved', { count: geojson.features?.length || 0 });
+        }
+
+        function initFirebreakForm() {
+            setInputValue('firebreakStartLatInput', centerLat + 0.015);
+            setInputValue('firebreakStartLngInput', centerLng - 0.025);
+            setInputValue('firebreakEndLatInput', centerLat + 0.035);
+            setInputValue('firebreakEndLngInput', centerLng + 0.030);
+
+            const form = document.getElementById('firebreakForm');
+            if (!form) return;
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                if (!window.KwanLongApi) return;
+
+                const payload = {
+                    name: document.getElementById('firebreakNameInput')?.value,
+                    priority: 'high',
+                    status: 'planned',
+                    startLat: Number(document.getElementById('firebreakStartLatInput')?.value),
+                    startLng: Number(document.getElementById('firebreakStartLngInput')?.value),
+                    endLat: Number(document.getElementById('firebreakEndLatInput')?.value),
+                    endLng: Number(document.getElementById('firebreakEndLngInput')?.value),
+                    notes: 'Created from dispatch map firebreak setup panel'
+                };
+
+                try {
+                    setStatusText('firebreakStatus', 'firebreakSaving');
+                    await window.KwanLongApi.post('/api/data/firebreaks', payload);
+                    await loadFirebreaks();
+                } catch (error) {
+                    const status = document.getElementById('firebreakStatus');
+                    if (status) status.textContent = error.message;
+                }
+            });
+        }
+
+        function startSafetyTimer() {
+            let totalSec = 42 * 60 + 15;
+            setInterval(() => {
+                if (totalSec > 0) totalSec--;
+                const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
+                const s = String(totalSec % 60).padStart(2, '0');
+                const timerEl = document.getElementById('safetyCountdown');
+                if (timerEl) timerEl.innerText = `00:${m}:${s}`;
+            }, 1000);
+        }
+
+        window.addEventListener('kwanlong:environment', (event) => {
+            const wind = event.detail?.wind;
+            const fuel = event.detail?.fuel;
+            const telemetryWind = document.getElementById('telemetryWindValue');
+            if (telemetryWind && wind) {
+                telemetryWind.textContent = `${wind.windDirectionDeg}° ${wind.windSpeedKmh} km/h`;
+            }
+            if (map && wind) {
+                if (windLayer) map.removeLayer(windLayer);
+                const arrow = L.divIcon({
+                    className: 'wind-arrow',
+                    html: `<div style="transform: rotate(${Number(wind.windDirectionDeg || 0) + 180}deg); font-size: 30px; color: #7dd3fc; text-shadow: 0 0 10px rgba(56,189,248,.8);">↑</div>`,
+                    iconSize: [36, 36],
+                    iconAnchor: [18, 18]
+                });
+                windLayer = L.marker([event.detail.requested.latitude, event.detail.requested.longitude], { icon: arrow })
+                    .bindTooltip(`${wind.windSpeedKmh} km/h from ${wind.windDirectionDeg}°`, { direction: 'top' })
+                    .addTo(map);
+            }
+            if (fuel) {
+                const terrainFreshness = document.getElementById('terrainFreshness');
+                if (terrainFreshness && !event.detail?.forest) {
+                    terrainFreshness.textContent = `Fuel fallback | ${fuel.fuelModelId} | ${fuel.confidence}`;
+                }
+            }
+        });
+
+        window.addEventListener('kwanlong:spread-model', (event) => {
+            const spread = event.detail?.estimate?.spreadRateMMin;
+            const telemetrySpread = document.getElementById('telemetrySpreadValue');
+            if (telemetrySpread && Number.isFinite(spread)) {
+                telemetrySpread.textContent = `${(spread * 60 / 1000).toFixed(2)} km/h`;
+            }
+        });
+    </script>
+</body>
+</html>
